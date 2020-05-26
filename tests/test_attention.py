@@ -39,7 +39,7 @@ def test_base_attention_layer_with_simple_data():
 
 def test_the_shape_from_multihead_attention_layer():
     # Create multi-headed attention layer.
-    layer = MultiHeadAttention()
+    layer = MultiHeadAttention(heads=2)
 
     # Check the shape of attention.
     q = torch.zeros((10, 16))
@@ -59,7 +59,7 @@ def test_the_shape_from_multihead_attention_layer():
 
 def test_multihead_attention_layer_with_simple_data():
     # Create multi-headed attention layer.
-    layer = MultiHeadAttention().eval()
+    layer = MultiHeadAttention(heads=2).eval()
 
     # Test for all-one tensors.
     q = torch.ones((3, 16))
@@ -81,12 +81,12 @@ def test_multihead_attention_layer_with_simple_data():
 
 def test_the_shape_from_attention_block():
     # Create attention block layer.
-    layer = AttentionBlock()
+    layer = AttentionBlock(heads=2, dims=16)
 
     # Check the shape of attention.
     q = torch.zeros((10, 16))
     k = torch.zeros((20, 16))
-    v = torch.zeros((20, 32))
+    v = torch.zeros((20, 16))
     x, past = layer(q, k, v)
 
     assert x.shape == (10, 16)
@@ -96,7 +96,7 @@ def test_the_shape_from_attention_block():
     # Test for reusing `past` key-value tensors.
     q = torch.zeros((5, 16))
     k = torch.zeros((7, 16))
-    v = torch.zeros((7, 32))
+    v = torch.zeros((7, 16))
     x, past = layer(q, k, v, past=past)
 
     assert x.shape == (5, 16)
