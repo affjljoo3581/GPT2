@@ -5,8 +5,13 @@ import torch.nn as nn
 class PositionalEmbedding(nn.Embedding):
     """Implementation of positional embedding layer.
 
+    Positional embedding layer encodes representations with their positional
+    informations. Each position is embedded to a ``embedding_dim`` dimensional
+    vector. If the input sequence is shifted or padded, the positional indices
+    would be adjusted equvalently with the given ``offset`` of the sequence.
+
     Note:
-        The parameter `num_embeddings` implies the length of each sequence.
+        The parameter ``num_embeddings`` implies the length of each sequence.
     """
     def forward(self, x: torch.Tensor, offset: int = 0):
         """Embed positional information to vectors.
