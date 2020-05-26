@@ -2,7 +2,7 @@ import torch
 from gpt2.modeling.embedding import PositionalEmbedding, EmbeddingBlock
 
 
-def test_the_shape_from_positional_embedding():
+def test_the_shape_from_positional_embedding_layer():
     # Create positional embedding layer.
     layer = PositionalEmbedding(num_embeddings=100, embedding_dim=32)
 
