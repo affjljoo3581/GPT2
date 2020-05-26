@@ -112,7 +112,8 @@ class AttentionBlock(nn.Module):
                 k: torch.Tensor,
                 v: torch.Tensor,
                 past: Optional[Tuple[torch.Tensor]] = None,
-                mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+                mask: Optional[torch.Tensor] = None
+                ) -> Tuple[torch.Tensor, Tuple[torch.Tensor]]:
         """Calculate multi-headed attentions with linear projections.
 
         Arguments:
