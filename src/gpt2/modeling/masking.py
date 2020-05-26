@@ -23,10 +23,10 @@ class PadMasking(nn.Module):
             offset (int): The offset of input sequences.
 
         Returns:
-            A masking tensor of shape `(..., seq_len, seq_len + offset)`.
+            A masking tensor of shape `(..., 1, seq_len + offset)`.
         """
         is_pad = (x == self.pad_idx).unsqueeze(-2)
-        shifted = torch.zeros(x.size()[:-1] + (offset,),
+        shifted = torch.zeros(x.size()[:-1] + (1, offset,),
                               dtype=torch.bool, device=x.device)
         return torch.cat((shifted, is_pad), dim=-1)
 
