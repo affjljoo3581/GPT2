@@ -59,10 +59,6 @@ class FutureMasking(nn.Module):
 class MaskingBlock(nn.Module):
     """Integrated masking layer.
 
-    Attention models should exclude certain values from attentions by various
-    reasons. Rather than using the diverse maskings separately, this layer
-    makes using the maskings to the models at once.
-
     Arguments:
         pad_idx (int): The index of pad token to ignore in attention.
     """
