@@ -41,14 +41,17 @@ class EmbeddingBlock(nn.Module):
         dims (int): The dimension of embedded vectors.
         dropout (float): The probability that each vector is dropped.
     """
-    def __init__(self, words: int, seq_len: int, dims: int,
+    def __init__(self,
+                 words: int,
+                 seq_len: int,
+                 dims: int,
                  dropout: float = 0.1):
         super().__init__()
         self.token_embedding = nn.Embedding(words, dims)
         self.position_embedding = PositionalEmbedding(seq_len, dims)
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x: torch.Tensor, offset: int = 0):
+    def forward(self, x: torch.Tensor, offset: int = 0) -> torch.Tensor:
         """Embed each word to the vector with its positional information.
 
         Arguments:
