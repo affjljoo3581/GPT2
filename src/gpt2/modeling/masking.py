@@ -15,7 +15,7 @@ class PadMasking(nn.Module):
         super().__init__()
         self.pad_idx = pad_idx
 
-    def forward(self, x: torch.Tensor, offset: int = 0):
+    def forward(self, x: torch.Tensor, offset: int = 0) -> torch.Tensor:
         """Create masking tensor to ignore paddings.
 
         Arguments:
@@ -37,7 +37,7 @@ class FutureMasking(nn.Module):
     Future-masking helps preventing the model from attending to the future
     tokens in the sequences.
     """
-    def forward(self, x: torch.Tensor, offset: int = 0):
+    def forward(self, x: torch.Tensor, offset: int = 0) -> torch.Tensor:
         """Create masking tensor to ignore the future tokens.
 
         Arguments:
@@ -67,7 +67,7 @@ class MaskingBlock(nn.Module):
         self.pad_masking = PadMasking(pad_idx)
         self.future_masking = FutureMasking()
 
-    def forward(self, x: torch.Tensor, offset: int = 0):
+    def forward(self, x: torch.Tensor, offset: int = 0) -> torch.Tensor:
         """Create combined masking tensor.
 
         Arguments:
