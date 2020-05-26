@@ -135,8 +135,8 @@ class AttentionBlock(nn.Module):
 
         # Reuse previously calculated keys and values.
         if past is not None:
-            k = torch.cat((past[0], k), dims=-2)
-            v = torch.cat((past[1], v), dims=-2)
+            k = torch.cat((past[0], k), dim=-2)
+            v = torch.cat((past[1], v), dim=-2)
 
         # Calculate multi-headed attention and apply linear projection.
         x = self.linear(self.attn(q, k, v, mask))
