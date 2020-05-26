@@ -24,7 +24,7 @@ def test_position_invariance_of_positional_embedding():
     input_tensor_2 = torch.randint(8000, (10, 6, 100), dtype=torch.long)
     assert (layer(input_tensor_1) == layer(input_tensor_2)).all()
 
-    # Check if embedded positional informations are padded by `offset`.
+    # Check if embedded positional informations are padded by ``offset``.
     input_tensor_1 = torch.randint(8000, (10,), dtype=torch.long)
     input_tensor_2 = torch.randint(8000, (5,), dtype=torch.long)
     for i in range(5):
