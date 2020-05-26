@@ -18,7 +18,7 @@ class BaseAttention(nn.Module):
                 q: torch.Tensor,
                 k: torch.Tensor,
                 v: torch.Tensor,
-                mask: Optional[torch.Tensor]) -> torch.Tensor:
+                mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         """Calculate attention from the given queries, keys and values.
 
         Arguments:
@@ -59,7 +59,7 @@ class MultiHeadAttention(BaseAttention):
                 q: torch.Tensor,
                 k: torch.Tensor,
                 v: torch.Tensor,
-                mask: Optional[torch.Tensor]) -> torch.Tensor:
+                mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         """Calculate multi-headed attentions.
 
         Arguments:
@@ -111,8 +111,8 @@ class AttentionBlock(nn.Module):
                 q: torch.Tensor,
                 k: torch.Tensor,
                 v: torch.Tensor,
-                past: Optional[Tuple[torch.Tensor]],
-                mask: Optional[torch.Tensor]) -> torch.Tensor:
+                past: Optional[Tuple[torch.Tensor]] = None,
+                mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         """Calculate multi-headed attentions with linear projections.
 
         Arguments:
