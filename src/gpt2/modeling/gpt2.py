@@ -80,7 +80,7 @@ class GPT2(nn.Module):
         words (int): The number of words in vocabulary.
         seq_len (int): The maximum length of input sequences.
         heads (int): The number of attention heads.
-        dims (int): The dimension of input tensor.
+        dims (int): The dimension of representation tensor in each layer.
         rate (int): The increase rate of dimensionality in bottleneck.
         dropout (float): The probability that each element is dropped.
     """
