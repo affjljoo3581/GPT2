@@ -1,9 +1,16 @@
-from . import _main
+import argparse
+from . import train
+
 
 # Ignore warnings.
 import warnings
 warnings.filterwarnings(action='ignore')
 
-# Call main function.
+
 if __name__ == '__main__':
-    _main()
+    parser = argparse.ArgumentParser(
+        description='Pytorch implementation of OpenAI GPT-2')
+    subparsers = parser.add_subparsers(required=True)
+
+    # Add `train` to the parser.
+    train.add_subparser(subparsers)
