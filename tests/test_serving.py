@@ -1,4 +1,5 @@
 from gpt2.data.serving import DataLoader
+from gpt2.data.vocabulary import Vocabulary
 from unittest import mock
 from io import StringIO
 import torch
@@ -56,7 +57,8 @@ def test_data_loader_fetches_well(mock_open):
         fp.write(_fake_corpus)
 
     # Create data loader.
-    loader = DataLoader(vocab='vocab', corpus='corpus', seq_len=10)
+    vocab = Vocabulary(vocab='vocab')
+    loader = DataLoader(vocab, corpus='corpus', seq_len=10)
 
     # Check if data loader fetches single sequence.
     data = loader.fetch()
