@@ -89,8 +89,7 @@ class DataLoader(object):
         return {k: torch.tensor(v, dtype=torch.long) for k, v in data.items()}
 
     def seek(self, offset: int):
-        """Set current position of the corpus file at the given offset.
-        """
+        """Set current position of the corpus file at the given offset."""
         self.corpus_fp.seek(offset)
 
     def tell(self) -> int:
