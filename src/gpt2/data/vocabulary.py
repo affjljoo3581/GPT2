@@ -24,6 +24,9 @@ class Vocabulary(object):
     def __getitem__(self, token: str) -> int:
         return self.vocab[token]
 
+    def __len__(self) -> int:
+        return len(self.vocab)
+
     @property
     def bos_idx(self):
         return self[self.bos_token]
