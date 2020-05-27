@@ -1,4 +1,5 @@
 import torch
+from .vocabulary import Vocabulary
 from typing import Optional, Union, List
 
 
@@ -9,29 +10,14 @@ class DataLoader(object):
     given vocabulary. Special tokens are added to each sequence.
 
     Arguments:
-        vocab (str): Vocabulary file path.
+        vocab (Vocabulary): The vocabulary object.
         corpus (str): Corpus file path.
         seq_len (int): The maximum length of each sequence.
-        bos_token (str): Begin-of-sentence token name.
-        eos_token (str): End-of-sentence token name.
-        pad_token (str): Pad token name.
     """
-    def __init__(self,
-                 vocab: str,
-                 corpus: str,
-                 seq_len: int,
-                 bos_token: str = '<s>',
-                 eos_token: str = '</s>',
-                 pad_token: str = '<pad>'):
+    def __init__(self, vocab: Vocabulary, corpus: str, seq_len: int):
+        self.vocab = vocab
         self.corpus_fp = open(corpus, 'r', encoding='utf-8')
         self.seq_len = seq_len
-        self.bos_token = bos_token
-        self.eos_token = eos_token
-        self.pad_token = pad_token
-
-        # Create vocabulary dictionary which maps from subwords to indices.
-        with open(vocab, 'r', encoding='utf-8') as fp:
-            self.vocab = {word: i for i, word in enumerate(fp.read().split())}
 
     def close(self):
         """Close resources."""
@@ -55,11 +41,9 @@ class DataLoader(object):
                 continue
 
             # Add speical tokens.
-            indices = ([self.vocab[self.bos_token]]
-                       + indices
-                       + [self.vocab[self.eos_token]])
-            indices = indices + ([self.vocab[self.pad_token]]
-                                 * (self.seq_len - len(indices) + 1))
+            indices = [self.vocab.bos_idx] + indices + [self.vocab.eos_idx]
+            indices += ([self.vocab.pad_idx]
+                        * (self.seq_len - len(indices) + 1))
 
             return {'input': indices[:-1], 'output': indices[1:]}
 
