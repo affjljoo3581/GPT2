@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from gpt2.data.serving import DataLoader
-from gpt2.utils.recording import Recorder
+from .recording import Recorder
 from typing import Optional, Callable, Dict, Any
 
 # Try to import `apex` library for mixed-precision training. Note that the
@@ -39,10 +39,8 @@ class Trainer(object):
         # Convert model and optimizer for mixed-precision training if
         # ``use_amp=True``.
         if use_amp:
-            model, optimizer = amp.initialize(model,
-                                              optimizer,
-                                              opt_level='O1',
-                                              verbosity=0)
+            model, optimizer = amp.initialize(
+                model, optimizer, opt_level='O1', verbosity=0)
 
         self.train_loader = train_loader
         self.eval_loader = eval_loader
