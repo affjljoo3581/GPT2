@@ -6,8 +6,7 @@ import torch.optim as optim
 from .data.serving import DataLoader
 from .data.vocabulary import Vocabulary
 from .modeling.gpt2 import GPT2
-from .utils.recording import Recorder
-from .utils.training import Trainer
+from .training_utils import Recorder, Trainer
 
 
 def _create_linear_decay_scheduler(optimizer: optim.Optimizer,
@@ -76,7 +75,6 @@ def _train_gpt2_model(args: argparse.Namespace):
     if args.restore is not None:
         ckpt = torch.load(args.restore)
         start_iters = ckpt['iters'] + 1
-
         trainer.load_state_dict(ckpt['trainer'])
 
     # Start training.
@@ -85,6 +83,7 @@ def _train_gpt2_model(args: argparse.Namespace):
     for iters in tqdm_iters:
         trainer.train(batch=args.batch_train)
 
+        # Show metrics of training and evaluation.
         if (iters + 1) % args.eval_iters == 0:
             trainer.evaluate(batch=args.batch_test)
             recorder.stamp(iters + 1)
@@ -93,6 +92,7 @@ def _train_gpt2_model(args: argparse.Namespace):
                 'train/loss: {train_loss:.4f}, '
                 'eval/loss: {eval_loss:.4f}'))
 
+        # Save training state to checkpoint file.
         if (iters + 1) % args.save_iters == 0:
             torch.save({'iters': iters, 'trainer': trainer.state_dict()},
                        args.checkpoint)
@@ -110,9 +110,15 @@ def _train_gpt2_model(args: argparse.Namespace):
 def add_subparser(subparsers: argparse._SubParsersAction):
     parser = subparsers.add_parser('train', help='train GPT-2 model.')
 
-    parser.add_argument('--train_corpus', help='corpus file for training')
-    parser.add_argument('--eval_corpus', help='corpus file for evaluation')
-    parser.add_argument('--vocab', help='vocabulary file path.')
+    parser.add_argument('--train_corpus',
+                        required=True,
+                        help='corpus file for training')
+    parser.add_argument('--eval_corpus',
+                        required=True,
+                        help='corpus file for evaluation')
+    parser.add_argument('--vocab',
+                        required=True,
+                        help='vocabulary file path.')
     parser.add_argument('--restore',
                         default=None,
                         help='restore from the given checkpoint file path')
