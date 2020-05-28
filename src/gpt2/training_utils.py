@@ -118,15 +118,6 @@ class Trainer(object):
         self.recorder = recorder
         self.use_amp = use_amp
 
-    def _backward(self, loss: torch.Tensor):
-        if self.use_amp:
-            # Calculate gradients through scaled loss rather than the original
-            # loss to prevent underflowing in mixed precision.
-            with amp.scale_loss(loss, self.optimizer) as scaled_loss:
-                scaled_loss.backward()
-        else:
-            loss.backward()
-
     def train(self, batch: Optional[int] = None):
         """Train model and record metrics for training."""
         # Prepare training.
@@ -141,8 +132,13 @@ class Trainer(object):
         loss = self.criterion(preds.transpose(1, 2), data['output'].cuda())
 
         # Calculate gradients.
-        # loss.backward()
-        self._backward(loss)
+        if self.use_amp:
+            # Calculate gradients through scaled loss rather than the original
+            # loss to prevent underflowing in mixed precision.
+            with amp.scale_loss(loss, self.optimizer) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            loss.backward()
 
         # Update variables and learning rate.
         self.optimizer.step()
