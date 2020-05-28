@@ -1,5 +1,5 @@
 import argparse
-from . import train
+from . import training
 
 
 # Ignore warnings.
