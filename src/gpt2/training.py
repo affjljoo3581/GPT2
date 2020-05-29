@@ -40,6 +40,7 @@ def _create_tqdm_progress(iterations: int, start_iters: int = 0) -> tqdm.tqdm:
 def _train_gpt2_model(args: argparse.Namespace):
     # Prepare data loaders for training and evaluation.
     vocab = Vocabulary(vocab=args.vocab,
+                       unk_token=args.unk_token,
                        bos_token=args.bos_token,
                        eos_token=args.eos_token,
                        pad_token=args.pad_token)
@@ -118,7 +119,7 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         help='corpus file for evaluation')
     parser.add_argument('--vocab',
                         required=True,
-                        help='vocabulary file path.')
+                        help='vocabulary file path')
     parser.add_argument('--restore',
                         default=None,
                         help='restore from the given checkpoint file path')
@@ -149,6 +150,10 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         default=1024,
                         type=int,
                         help='dimension of representation in each layer')
+    parser.add_argument('--rate',
+                        default=4,
+                        type=int,
+                        help='increase rate of dimensionality in bottleneck')
     parser.add_argument('--dropout',
                         default=0.1,
                         type=float,
@@ -176,5 +181,17 @@ def add_subparser(subparsers: argparse._SubParsersAction):
     parser.add_argument('--use_amp',
                         action='store_true',
                         help='use automatic mixed-precision in training')
+    parser.add_argument('--unk_token',
+                        default='<unk>',
+                        help='unknown token name')
+    parser.add_argument('--bos_token',
+                        default='<s>',
+                        help='begin-of-sentence token name')
+    parser.add_argument('--eos_token',
+                        default='</s>',
+                        help='end-of-sentence token name')
+    parser.add_argument('--pad_token',
+                        default='<pad>',
+                        help='pad token name')
 
     parser.set_defaults(func=_train_gpt2_model)
