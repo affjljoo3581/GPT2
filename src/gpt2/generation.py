@@ -42,8 +42,8 @@ def _generate_sentence(args: argparse.Namespace):
 
 
 def add_subparser(subparsers: argparse._SubParsersAction):
-    parser = subparsers.add_parser('generate',
-                                   help='generate sentence through GPT-2 model.')
+    parser = subparsers.add_parser(
+        'generate', help='generate sentence through GPT-2 model.')
 
     parser.add_argument('--vocab',
                         required=True,
