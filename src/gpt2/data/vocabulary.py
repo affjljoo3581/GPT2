@@ -24,6 +24,9 @@ class Vocabulary(object):
     def __getitem__(self, token: str) -> int:
         return self.vocab[token]
 
+    def __contains__(self, token: str) -> bool:
+        return token in self.vocab
+
     def __len__(self) -> int:
         return len(self.vocab)
 
