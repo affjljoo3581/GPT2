@@ -4,15 +4,18 @@ class Vocabulary(object):
 
     Arguments:
         vocab (str): Vocabulary file path.
+        unk_token (str): Unknown token name.
         bos_token (str): Begin-of-sentence token name.
         eos_token (str): End-of-sentence token name.
         pad_token (str): Pad token name.
     """
     def __init__(self,
                  vocab: str,
+                 unk_token: str = '<unk>',
                  bos_token: str = '<s>',
                  eos_token: str = '</s>',
                  pad_token: str = '<pad>'):
+        self.unk_token = unk_token
         self.bos_token = bos_token
         self.eos_token = eos_token
         self.pad_token = pad_token
@@ -29,6 +32,10 @@ class Vocabulary(object):
 
     def __len__(self) -> int:
         return len(self.vocab)
+
+    @property
+    def unk_idx(self):
+        return self[self.unk_token]
 
     @property
     def bos_idx(self):
