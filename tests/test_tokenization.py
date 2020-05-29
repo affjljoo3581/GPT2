@@ -1,4 +1,3 @@
-import os
 import string
 from unittest import mock
 from gpt2.data.vocabulary import Vocabulary
