@@ -1,6 +1,6 @@
 import torch
 from .vocabulary import Vocabulary
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Dict
 
 
 class DataLoader(object):
@@ -23,7 +23,7 @@ class DataLoader(object):
         """Close resources."""
         self.corpus_fp.close()
 
-    def _fetch_one(self) -> torch.Tensor:
+    def _fetch_one(self) -> Dict[str, torch.Tensor]:
         while True:
             # Get sequence by reading file.
             line = self.corpus_fp.readline()
@@ -49,7 +49,8 @@ class DataLoader(object):
 
     def fetch(self,
               batch: Optional[int] = None
-              ) -> Union[torch.Tensor, List[torch.Tensor]]:
+              ) -> Union[Dict[str, torch.Tensor],
+                         List[Dict[str, torch.Tensor]]]:
         """Fetch sequences from the corpus.
 
         Arguments:
