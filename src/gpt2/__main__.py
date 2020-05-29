@@ -1,5 +1,5 @@
 import argparse
-from . import training
+from . import training, generation
 
 
 # Ignore warnings.
@@ -15,6 +15,9 @@ if __name__ == '__main__':
 
     # Add `train` to the parser.
     training.add_subparser(subparsers)
+
+    # Add `generate` to the parser.
+    generation.add_subparser(subparsers)
 
     # Parse arguments and call corresponding function.
     args = parser.parse_args()
