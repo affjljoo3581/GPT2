@@ -25,18 +25,17 @@ class Tokenizer(object):
         self.special_tokens = special_tokens
         self.max_word_len = max_word_len
 
-    def encode(self, text: str, unk_token: str = '<unk>') -> List[str]:
+    def encode(self, text: str) -> List[str]:
         """Encode sentence to subword tokens.
 
         Arguments:
             text (str): Input sentence.
-            unk_token (str): Unknown token name.
 
         Returns:
             A list of subword tokens."""
         return [token
                 for normalized in self._normalize(text)
-                for token in self._tokenize(normalized, unk_token)]
+                for token in self._tokenize(normalized)]
 
     def _normalize(self, text: str) -> List[str]:
         # Clear text by normalizing whitespace characters and removing control
@@ -58,13 +57,13 @@ class Tokenizer(object):
 
         return ' '.join(normalized).split()
 
-    def _tokenize(self, text: str, unk_token: str) -> List[str]:
+    def _tokenize(self, text: str) -> List[str]:
         subwords = []
 
         for token in text.split():
             # Skip too long tokens.
             if len(token) > 100:
-                subwords.append(unk_token)
+                subwords.append(self.vocab.unk_token)
                 continue
 
             children = []
@@ -88,6 +87,6 @@ class Tokenizer(object):
                 if not current:
                     children, token = None, None
 
-            subwords += children or [unk_token]
+            subwords += children or [self.vocab.unk_token]
 
         return subwords
