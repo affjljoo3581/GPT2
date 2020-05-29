@@ -1,4 +1,4 @@
-from gpt2.utils.recording import Recorder
+from gpt2.training_utils import Recorder
 
 
 def test_recorder_records_metrics_well():
