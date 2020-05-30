@@ -78,6 +78,10 @@ def _train_gpt2_model(args: argparse.Namespace):
         start_iters = ckpt['iters'] + 1
         trainer.load_state_dict(ckpt['trainer'])
 
+        # Release checkpoint resources to prevent CUDA OOM.
+        del ckpt
+        torch.cuda.empty_cache()
+
     # Start training.
     tqdm_iters = _create_tqdm_progress(iterations=args.iterations,
                                        start_iters=start_iters)
