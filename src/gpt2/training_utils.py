@@ -172,6 +172,10 @@ class Trainer(object):
                  'scheduler': self.scheduler.state_dict(),
                  'recorder': self.recorder.state_dict()}
 
+        # Save automatic mixed-precision states as well.
+        if self.use_amp:
+            state['amp'] = amp.state_dict()
+
         return state
 
     def load_state_dict(self, state_dict: Dict[str, Any]):
@@ -182,3 +186,7 @@ class Trainer(object):
         self.optimizer.load_state_dict(state_dict['optimizer'])
         self.scheduler.load_state_dict(state_dict['scheduler'])
         self.recorder.load_state_dict(state_dict['recorder'])
+
+        # Restore automatic mixed-precision states as well.
+        if self.use_amp:
+            amp.load_state_dict(state['amp'])
