@@ -1,0 +1,4 @@
+regex
+tqdm
+torch
+numpy
