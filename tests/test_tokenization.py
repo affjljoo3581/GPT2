@@ -11,7 +11,7 @@ _fake_vocab = ('<unk>\n'
 
 
 @mock.patch('builtins.open')
-def test_tokenizer_works_well(mock_open):
+def test_tokenizer_encodes_well(mock_open):
     file_mock = mock_open.return_value.__enter__.return_value
     file_mock.read.return_value = _fake_vocab
 
@@ -23,3 +23,17 @@ def test_tokenizer_works_well(mock_open):
     input_sentence = 'hello world'
     expected = ['he', '##llo', 'wo', '##r', '##l', '##d']
     assert tokenizer.encode(input_sentence) == expected
+
+
+@mock.patch('builtins.open')
+def test_tokenizer_decodes_well(mock_open):
+    file_mock = mock_open.return_value.__enter__.return_value
+    file_mock.read.return_value = _fake_vocab
+
+    # Create vocabulary and subword tokenizer.
+    vocab = Vocabulary('')
+    tokenizer = Tokenizer(vocab, special_tokens=['<unk>'])
+
+    # Check if tokenizer decodes well.
+    input_tokens = ['he', '##llo', 'wo', '##r', '##l', '##d']
+    assert tokenizer.decode(input_tokens) == 'hello world'
