@@ -17,9 +17,9 @@ def test_tokenizer_works_well(mock_open):
 
     # Create vocabulary and subword tokenizer.
     vocab = Vocabulary('')
-    tokenizer = Tokenizer(vocab, special_tokens=[])
+    tokenizer = Tokenizer(vocab, special_tokens=['<unk>'])
 
     # Check if tokenizer encodes well.
     input_sentence = 'hello world'
     expected = ['he', '##llo', 'wo', '##r', '##l', '##d']
-    assert tokenizer.encode(input_sentence, unk_token='<unk>') == expected
+    assert tokenizer.encode(input_sentence) == expected
