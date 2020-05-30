@@ -37,7 +37,7 @@ class Generator(object):
         seq = [self.vocab.bos_idx] + seq
 
         with torch.no_grad():
-            past, log_prob = 0
+            past, log_prob = None, 0
 
             input_seq = seq
             while len(seq) < self.seq_len:
