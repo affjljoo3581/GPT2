@@ -1,3 +1,5 @@
+from typing import Union
+
 
 class Vocabulary(object):
     """Vocabulary class for mapping tokens to indices.
@@ -22,16 +24,20 @@ class Vocabulary(object):
 
         # Create vocabulary dictionary which maps from subwords to indices.
         with open(vocab, 'r', encoding='utf-8') as fp:
-            self.vocab = {word: i for i, word in enumerate(fp.read().split())}
+            self.words = fp.read().split()
+            self.vocab = {word: i for i, word in enumerate(self.words)}
 
-    def __getitem__(self, token: str) -> int:
-        return self.vocab[token]
+    def __getitem__(self, token: Union[int, str]) -> Union[str, int]:
+        if isinstance(token, str):
+            return self.vocab[token]
+        else:
+            return self.words[token]
 
     def __contains__(self, token: str) -> bool:
-        return token in self.vocab
+        return token in self.words
 
     def __len__(self) -> int:
-        return len(self.vocab)
+        return len(self.words)
 
     @property
     def unk_idx(self):
