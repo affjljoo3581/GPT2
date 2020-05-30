@@ -7,6 +7,14 @@ from .feedforward import PositionwiseFeedForward
 from typing import Optional, Tuple, List
 
 
+# Try to import `apex` library for using fused layer-norm. Note that if `apex`
+# is installed, then ``FusedLayerNorm`` would be used automatically.
+try:
+    from apex.normalization import FusedLayerNorm as MyLayerNorm
+except ModuleNotFoundError:
+    from torch.nn import LayerNorm as MyLayerNorm
+
+
 class DecoderBlock(nn.Module):
     """Transformer-based decoder layer.
 
@@ -24,8 +32,8 @@ class DecoderBlock(nn.Module):
         super().__init__()
         self.attn = AttentionBlock(heads, dims, dropout)
         self.ff = PositionwiseFeedForward(dims, rate, dropout)
-        self.ln_attn = nn.LayerNorm(dims)
-        self.ln_ff = nn.LayerNorm(dims)
+        self.ln_attn = MyLayerNorm(dims)
+        self.ln_ff = MyLayerNorm(dims)
 
     def forward(self,
                 x: torch.Tensor,
