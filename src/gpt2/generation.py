@@ -53,6 +53,7 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         help='trained model checkpoint')
     parser.add_argument('--seq_len',
                         default=64,
+                        type=int,
                         help='maximum length of sequences')
     parser.add_argument('--layers',
                         default=12,
@@ -79,7 +80,7 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         type=int,
                         help='number of samples to generate')
     parser.add_argument('--topk',
-                        default=1024,
+                        default=40,
                         type=int,
                         help='number of next-word candidates')
     parser.add_argument('--unk_token',
