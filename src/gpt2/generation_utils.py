@@ -65,8 +65,7 @@ class Generator(object):
                     break
 
         # Cast token indices to subwords and merge them.
-        seq = [self.vocab[t] for t in seq]
-        sentence = ' '.join(seq).replace(' ##', '')
+        sentence = self.tokenizer.decode([self.vocab[t] for t in seq])
 
         return sentence, log_prob
 
