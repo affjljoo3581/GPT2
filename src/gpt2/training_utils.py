@@ -165,18 +165,18 @@ class Trainer(object):
 
     def state_dict(self) -> Dict[str, Any]:
         """Return state dictionary of this class."""
-        state = {'train_loader': self.train_loader.tell(),
-                 'eval_loader': self.eval_loader.tell(),
-                 'model': self.model.state_dict(),
-                 'optimizer': self.optimizer.state_dict(),
-                 'scheduler': self.scheduler.state_dict(),
-                 'recorder': self.recorder.state_dict()}
+        state_dict = {'train_loader': self.train_loader.tell(),
+                      'eval_loader': self.eval_loader.tell(),
+                      'model': self.model.state_dict(),
+                      'optimizer': self.optimizer.state_dict(),
+                      'scheduler': self.scheduler.state_dict(),
+                      'recorder': self.recorder.state_dict()}
 
         # Save automatic mixed-precision states as well.
         if self.use_amp:
-            state['amp'] = amp.state_dict()
+            state_dict['amp'] = amp.state_dict()
 
-        return state
+        return state_dict
 
     def load_state_dict(self, state_dict: Dict[str, Any]):
         """Restore this class from the given state dictionary."""
@@ -189,4 +189,4 @@ class Trainer(object):
 
         # Restore automatic mixed-precision states as well.
         if self.use_amp:
-            amp.load_state_dict(state['amp'])
+            amp.load_state_dict(state_dict['amp'])
