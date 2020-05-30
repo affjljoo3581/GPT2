@@ -37,6 +37,23 @@ class Tokenizer(object):
                 for normalized in self._normalize(text)
                 for token in self._tokenize(normalized)]
 
+    def decode(self, tokens: List[str]) -> str:
+        """Decode subword tokens to plain text.
+
+        Arguments:
+            tokens (list): The list of subword tokens.
+
+        Returns:
+            A merged plain text.
+        """
+        return (' '.join(tokens).replace(' ##', '')
+                                .replace(' .', '.')
+                                .replace(' ?', '?')
+                                .replace(' !', '!')
+                                .replace(' ,', ',')
+                                .replace(' \' ', '\'')
+                                .replace(' \" ', '\"'))
+
     def _normalize(self, text: str) -> List[str]:
         # Clear text by normalizing whitespace characters and removing control
         # characters.
