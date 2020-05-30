@@ -86,7 +86,7 @@ def _train_gpt2_model(args: argparse.Namespace):
 
         # Show metrics of training and evaluation.
         if (iters + 1) % args.eval_iters == 0:
-            trainer.evaluate(batch=args.batch_test)
+            trainer.evaluate(batch=args.batch_eval)
             recorder.stamp(iters + 1)
 
             tqdm_iters.set_postfix_str(recorder.format(
