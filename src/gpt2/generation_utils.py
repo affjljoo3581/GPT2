@@ -49,22 +49,26 @@ class Generator(object):
                 preds = (preds[0, -1] / self.temperature).softmax(-1).numpy()
                 candidates = preds.argsort()[-self.topk:][::-1]
 
-                probs = preds[candidates] / preds[candidates].sum()
-                next_word_idx = np.random.choice(candidates, p=probs)
+                modified_probs = preds[candidates] / preds[candidates].sum()
+                next_word_idx = np.random.choice(candidates, p=modified_probs)
 
                 # Update log probability.
-                log_prob += np.log(probs[next_word_idx])
+                log_prob += np.log(preds[next_word_idx])
+
+                # Update sequence.
+                input_seq = [next_word_idx]
+                seq.append(next_word_idx)
 
                 # Finish generating sentence if end-of-sentence token is
                 # predicted.
                 if next_word_idx == self.vocab.eos_idx:
                     break
 
-                # Update sequence.
-                input_seq = [next_word_idx]
-                seq.append(next_word_idx)
+        # Cast token indices to subwords and merge them.
+        seq = [self.vocab[t] for t in seq]
+        sentence = ' '.join(seq).replace(' ##', '')
 
-        return ' '.join(seq).replace(' ##', ''), log_prob
+        return sentence, log_prob
 
     def generate(self, context: str, samples: int = 20) -> Tuple[str, float]:
         """Generate sentence from the given context.
