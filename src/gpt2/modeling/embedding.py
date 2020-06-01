@@ -61,5 +61,5 @@ class EmbeddingBlock(nn.Module):
         Returns:
             An embedded tensor of shape `(..., seq_len, dims)`.
         """
-        x = self.token_embedding(x) + self.position_embedding(x)
+        x = self.token_embedding(x) + self.position_embedding(x, offset)
         return self.dropout(x)
