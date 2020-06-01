@@ -1,5 +1,5 @@
 import argparse
-from . import training, generation
+from . import training, generation, visualization
 
 
 # Ignore warnings.
@@ -18,6 +18,9 @@ if __name__ == '__main__':
 
     # Add `generate` to the parser.
     generation.add_subparser(subparsers)
+
+    # Add `visualize` to the parser.
+    visualization.add_subparser(subparsers)
 
     # Parse arguments and call corresponding function.
     args = parser.parse_args()
