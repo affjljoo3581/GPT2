@@ -39,6 +39,10 @@ class TokenEmbedding(nn.Embedding):
         The parameter ``num_embeddings`` implies the number of subwords in
         vocabulary.
     """
+    def reset_parameters(self):
+        """Initialize embedding matrix."""
+        nn.init.normal_(self.weight, std=0.02)
+
     def forward(self,
                 x: torch.Tensor,
                 transposed: bool = False) -> torch.Tensor:
