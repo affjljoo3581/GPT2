@@ -13,7 +13,7 @@ class PositionalEmbedding(nn.Embedding):
     Note:
         The parameter ``num_embeddings`` implies the length of each sequence.
     """
-    def forward(self, x: torch.Tensor, offset: int = 0):
+    def forward(self, x: torch.Tensor, offset: int = 0) -> torch.Tensor:
         """Embed positional information to vectors.
 
         Arguments:
@@ -21,7 +21,7 @@ class PositionalEmbedding(nn.Embedding):
             offset (int): The offset of input sequences.
 
         Returns:
-            An embedded tensor of shape `(..., seq_len, embedding_dims)`.
+            An embedded tensor of shape `(..., seq_len, embedding_dim)`.
         """
         # Create position indices tensor.
         position = torch.arange(offset, offset + x.size(-1),
@@ -32,34 +32,33 @@ class PositionalEmbedding(nn.Embedding):
         return super().forward(position)
 
 
-class EmbeddingBlock(nn.Module):
-    """Embedding layer with positional encoding.
+class TokenEmbedding(nn.Embedding):
+    """Implementation of token embedding layer.
 
-    Arguments:
-        words (int): The number of words in vocabulary.
-        seq_len (int): The maximum length of input sequences.
-        dims (int): The dimension of embedded vectors.
-        dropout (float): The probability that each vector is dropped.
+    Note:
+        The parameter ``num_embeddings`` implies the number of subwords in
+        vocabulary.
     """
-    def __init__(self,
-                 words: int,
-                 seq_len: int,
-                 dims: int,
-                 dropout: float = 0.1):
-        super().__init__()
-        self.token_embedding = nn.Embedding(words, dims)
-        self.position_embedding = PositionalEmbedding(seq_len, dims)
-        self.dropout = nn.Dropout(dropout)
-
-    def forward(self, x: torch.Tensor, offset: int = 0) -> torch.Tensor:
-        """Embed each word to the vector with its positional information.
+    def forward(self,
+                x: torch.Tensor,
+                transposed: bool = False) -> torch.Tensor:
+        """Embed subword tokens to vectors.
 
         Arguments:
-            x (tensor): Input tensor of shape `(..., seq_len)`.
-            offset (int): The offset of input sequences.
+            x (tensor): Input tensor of shape `(..., seq_len)` or
+                `(..., seq_len, embedding_dim)`.
+            transposed (bool): The boolean determining whether to transpose the
+                embedding matrix.
 
         Returns:
-            An embedded tensor of shape `(..., seq_len, dims)`.
+            An embedded tensor of shape `(..., seq_len, embedding_dim)` or a
+            logit tensor of shape `(..., seq_len, num_embeddings)`.
+
+        Note:
+            If ``transposed==True`` then the input tensor would be projected to
+            the vocabulary space.
         """
-        x = self.token_embedding(x) + self.position_embedding(x, offset)
-        return self.dropout(x)
+        if transposed:
+            return torch.matmul(x, self.weight.transpose(0, 1))
+
+        return super().forward(x)
