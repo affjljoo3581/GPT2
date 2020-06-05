@@ -1,5 +1,5 @@
 import torch
-from gpt2.modeling.embedding import PositionalEmbedding, EmbeddingBlock
+from gpt2.modeling.embedding import PositionalEmbedding, TokenEmbedding
 
 
 def test_the_shape_from_positional_embedding_layer():
@@ -38,9 +38,9 @@ def test_position_invariance_of_positional_embedding():
                 == layer(input_tensor_2, offset=i)).all()
 
 
-def test_the_shape_from_embedding_block():
-    # Create embedding block layer.
-    layer = EmbeddingBlock(words=80, seq_len=20, dims=32).eval()
+def test_the_shape_from_token_embedding():
+    # Create token embedding layer.
+    layer = TokenEmbedding(num_embeddings=80, embedding_dim=32)
 
     # Check shape-invariance for multi-dimension tensor.
     input_tensor = torch.randint(80, (3, 6, 10), dtype=torch.long)
@@ -49,3 +49,7 @@ def test_the_shape_from_embedding_block():
     # Check shape-invariance for single vector.
     input_tensor = torch.randint(80, (10,), dtype=torch.long)
     assert layer(input_tensor).shape == input_tensor.shape + (32,)
+
+    # Check for transposed embedding matrix.
+    input_tensor = torch.zeros((20, 30, 32))
+    assert layer(input_tensor, transposed=True).shape == (20, 30, 80)

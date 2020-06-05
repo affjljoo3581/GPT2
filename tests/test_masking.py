@@ -1,6 +1,6 @@
 import torch
 import itertools
-from gpt2.modeling.masking import PadMasking, FutureMasking, MaskingBlock
+from gpt2.modeling.masking import PadMasking, FutureMasking
 
 
 def test_the_shape_from_pad_masking_layer():
@@ -114,28 +114,3 @@ def test_future_tokens_are_masked_well():
                              [0, 0, 0, 0, 0]],
                             dtype=torch.bool)
     assert (layer(input_tensor, offset=2) == expected).all()
-
-
-def test_the_shape_from_masking_block():
-    # Create integrated masking block.
-    layer = MaskingBlock(pad_idx=0)
-
-    # Test for various-dimensional tensors.
-    input_tensor = torch.randint(8000, (30,), dtype=torch.long)
-    assert layer(input_tensor).shape == (30, 30)
-
-    input_tensor = torch.randint(8000, (16, 30,), dtype=torch.long)
-    assert layer(input_tensor).shape == (16, 30, 30)
-
-    input_tensor = torch.randint(8000, (2, 5, 6, 4), dtype=torch.long)
-    assert layer(input_tensor).shape == (2, 5, 6, 4, 4)
-
-    # Check if the masks are shifted by `offset`.
-    input_tensor = torch.randint(8000, (30,), dtype=torch.long)
-    assert layer(input_tensor, offset=5).shape == (30, 35)
-
-    input_tensor = torch.randint(8000, (16, 30,), dtype=torch.long)
-    assert layer(input_tensor, offset=7).shape == (16, 30, 37)
-
-    input_tensor = torch.randint(8000, (2, 5, 6, 4), dtype=torch.long)
-    assert layer(input_tensor, offset=2).shape == (2, 5, 6, 4, 6)

@@ -1,5 +1,5 @@
 import torch
-from gpt2.modeling.gpt2 import DecoderBlock, LMHeadBlock, GPT2
+from gpt2.modeling.gpt2 import DecoderBlock, GPT2
 
 
 def test_the_shape_from_decoder_block():
@@ -33,24 +33,6 @@ def test_the_shape_from_decoder_block():
     assert output_tensor.shape == input_tensor.shape
     assert past[0].shape == (3, 2, 18, 16)
     assert past[1].shape == (3, 2, 18, 16)
-
-
-def test_the_shape_from_lm_head_block():
-    # Create lm-head block layer.
-    layer = LMHeadBlock(words=80, dims=16)
-
-    # Check if tensors are projected to the vocabulary space.
-    input_tensor = torch.zeros((5, 32, 16))
-    assert layer(input_tensor).shape == (5, 32, 80)
-
-    input_tensor = torch.zeros((32, 16))
-    assert layer(input_tensor).shape == (32, 80)
-
-    input_tensor = torch.zeros((1, 5, 32, 16))
-    assert layer(input_tensor).shape == (1, 5, 32, 80)
-
-    input_tensor = torch.zeros((5, 7, 9, 32, 16))
-    assert layer(input_tensor).shape == (5, 7, 9, 32, 80)
 
 
 def test_the_shape_from_gpt2_model():
