@@ -13,6 +13,10 @@ class PositionalEmbedding(nn.Embedding):
     Note:
         The parameter ``num_embeddings`` implies the length of each sequence.
     """
+    def reset_parameters(self):
+        """Initialize embedding matrix."""
+        nn.init.normal_(self.weight, std=0.02)
+
     def forward(self, x: torch.Tensor, offset: int = 0) -> torch.Tensor:
         """Embed positional information to vectors.
 
