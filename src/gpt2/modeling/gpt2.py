@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from .masking import MaskingBlock
-from .embedding import EmbeddingBlock
+from .masking import PadMasking, FutureMasking
+from .embedding import PositionalEmbedding, TokenEmbedding
 from .attention import AttentionBlock
 from .feedforward import PositionwiseFeedForward
 from typing import Optional, Tuple, List
@@ -61,24 +61,6 @@ class DecoderBlock(nn.Module):
         return x + a, past
 
 
-class LMHeadBlock(nn.Sequential):
-    """Head layer to predict next words.
-
-    Arguments:
-        words (int): The number of words in vocabulary.
-        dims (int): The dimension of input tensor.
-
-    Note:
-        * The output tensor has a dimensionality of ``words``.
-        * Since GPT-2 decoder layers have normalizations before the sub-layers,
-          the representations are normalized at first of this layer.
-    """
-    def __init__(self, words: int, dims: int):
-        super().__init__(
-            nn.LayerNorm(dims),
-            nn.Linear(dims, words))
-
-
 class GPT2(nn.Module):
     """Implementation of OpenAI GPT-2.
 
@@ -102,11 +84,17 @@ class GPT2(nn.Module):
                  rate: int = 4,
                  dropout: float = 0.1):
         super().__init__()
-        self.masking = MaskingBlock(pad_idx)
-        self.embedding = EmbeddingBlock(words, seq_len, dims, dropout)
+        self.pad_masking = PadMasking(pad_idx)
+        self.future_masking = FutureMasking()
+
+        self.positional_embedding = PositionalEmbedding(seq_len, dims)
+        self.token_embedding = TokenEmbedding(words, dims)
+        self.dropout_embedding = nn.Dropout(dropout)
+
         self.decoders = nn.ModuleList([
             DecoderBlock(heads, dims, rate, dropout) for _ in range(layers)])
-        self.head = LMHeadBlock(words, dims)
+
+        self.ln_head = MyLayerNorm(dims)
 
     def forward(self,
                 x: torch.Tensor,
@@ -127,14 +115,21 @@ class GPT2(nn.Module):
         # The past key-value pairs imply that input sequences are shifted.
         offset = past[0][0].size(-2) if past is not None else 0
 
-        # Create masking tensor and embedding vectors.
-        mask = self.masking(x, offset)
-        x = self.embedding(x, offset)
+        # Create masking tensor.
+        mask = self.pad_masking(x, offset) + self.future_masking(x, offset)
 
-        # Apply transformer-based layers sequentially.
+        # Create embedding vectors with dropout layer.
+        x = self.token_embedding(x) + self.positional_embedding(x, offset)
+        x = self.dropout_embedding(x)
+
+        # Apply transformer-based decoder layers sequentially.
         present = []
         for i, decoder in enumerate(self.decoders):
             x, p = decoder(x, past[i] if past is not None else None, mask)
             present.append(p)
 
-        return self.head(x), present
+        # Predict next words by projecting representations to vocabulary space.
+        x = self.ln_head(x)
+        x = self.token_embedding(x, transposed=True)
+
+        return x, present
