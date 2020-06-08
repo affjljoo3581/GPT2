@@ -16,18 +16,6 @@ except ModuleNotFoundError:
 
 
 class DecoderBlock(nn.Module):
-    """Transformer-based decoder layer.
-
-    Arguments:
-        heads (int): The number of attention heads.
-        dims (int): The dimension of input tensor.
-        rate (int): The increase rate of dimensionality in bottleneck.
-        dropout (float): The probability that each element is dropped.
-
-    Note:
-        In case of GPT-2, layer normalizations are performed before the
-        attention and feed-forward layer respectively.
-    """
     def __init__(self, heads: int, dims: int, rate: int, dropout: float = 0.1):
         super().__init__()
         self.attn = AttentionBlock(heads, dims, dropout)
@@ -51,6 +39,10 @@ class DecoderBlock(nn.Module):
             * An output tensor which has same shape as ``q``.
             * A tuple of projected key-value tensors of shape
               `(..., past_len + kv_len, dims)`.
+
+        Note:
+            In case of GPT-2, layer normalizations are performed before the
+            attention and feed-forward layer respectively.
         """
         x = self.ln_attn(x)
         a, past = self.attn(x, x, x, past, mask)
@@ -62,18 +54,6 @@ class DecoderBlock(nn.Module):
 
 
 class GPT2(nn.Module):
-    """Implementation of OpenAI GPT-2.
-
-    Arguments:
-        layers (int): The number of decoder layers.
-        pad_idx (int): Index of pad token.
-        words (int): The number of words in vocabulary.
-        seq_len (int): The maximum length of input sequences.
-        heads (int): The number of attention heads.
-        dims (int): The dimension of representation tensor in each layer.
-        rate (int): The increase rate of dimensionality in bottleneck.
-        dropout (float): The probability that each element is dropped.
-    """
     def __init__(self,
                  layers: int,
                  pad_idx: int,
