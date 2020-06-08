@@ -14,17 +14,6 @@ class BaseAttention(nn.Module):
                 k: torch.Tensor,
                 v: torch.Tensor,
                 mask: Optional[torch.Tensor] = None) -> torch.Tensor:
-        """Calculate attention from the given queries, keys and values.
-
-        Arguments:
-            q (tensor): Input query tensor of shape `(..., query_len, dims)`.
-            k (tensor): Input key tensor of shape `(..., kv_len, dims)`.
-            v (tensor): Input value tensor of shape `(..., kv_len, dims)`.
-            mask (tensor): Masking tensor of shape `(..., query_len, kv_len)`.
-
-        Returns:
-            An attention tensor which has the same shape as ``q``.
-        """
         # Calculate attention weight logits.
         x = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(k.size(-1))
         if mask is not None:
@@ -47,17 +36,6 @@ class MultiHeadAttention(BaseAttention):
                 k: torch.Tensor,
                 v: torch.Tensor,
                 mask: Optional[torch.Tensor] = None) -> torch.Tensor:
-        """Calculate multi-headed attentions.
-
-        Arguments:
-            q (tensor): Input query tensor of shape `(..., query_len, dims)`.
-            k (tensor): Input key tensor of shape `(..., kv_len, dims)`.
-            v (tensor): Input value tensor of shape `(..., kv_len, dims)`.
-            mask (tensor): Masking tensor of shape `(..., query_len, kv_len)`.
-
-        Returns:
-            An attention tensor which has the same shape as ``q``.
-        """
         # Split each input tensor into multi-heads.
         q = q.view(q.size()[:-1] + (self.heads, q.size(-1) // self.heads))
         k = k.view(k.size()[:-1] + (self.heads, k.size(-1) // self.heads))
@@ -94,21 +72,6 @@ class AttentionBlock(nn.Module):
                 past: Optional[Tuple[torch.Tensor]] = None,
                 mask: Optional[torch.Tensor] = None
                 ) -> Tuple[torch.Tensor, Tuple[torch.Tensor]]:
-        """Calculate multi-headed attentions with linear projections.
-
-        Arguments:
-            q (tensor): Input query tensor of shape `(..., query_len, dims)`.
-            k (tensor): Input key tensor of shape `(..., kv_len, dims)`.
-            v (tensor): Input value tensor of shape `(..., kv_len, dims)`.
-            past (tuple): The tuple of previously calculated key-value tensors
-                of shape `(..., past_len, dims)`.
-            mask (tensor): Masking tensor of shape `(..., query_len, kv_len)`.
-
-        Returns:
-            * An attention tensor which has same shape as ``q``.
-            * A tuple of projected key-value tensors of shape
-              `(..., past_len + kv_len, dims)`.
-        """
         # Project input tensors.
         q = self.proj_q(q)
         k = self.proj_k(k)
