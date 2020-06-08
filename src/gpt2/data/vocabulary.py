@@ -2,15 +2,6 @@ from typing import Union
 
 
 class Vocabulary(object):
-    """Vocabulary for mapping tokens to indices.
-
-    Arguments:
-        vocab_path (str): Vocabulary file path.
-        unk_token (str): Unknown token name.
-        bos_token (str): Begin-of-sentence token name.
-        eos_token (str): End-of-sentence token name.
-        pad_token (str): Pad token name.
-    """
     def __init__(self,
                  vocab_path: str,
                  unk_token: str = '<unk>',
