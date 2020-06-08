@@ -14,24 +14,20 @@ except ModuleNotFoundError:
 
 
 class Recorder(object):
-    """Record metrics for training and evaluation."""
     def __init__(self):
         self.metrics_train = [[]]
         self.metrics_eval = []
         self.stamps = [(0, time.time())]
 
     def add_train_metrics(self, **metrics: float):
-        """Add metrics for training."""
         if not isinstance(self.metrics_train[-1], list):
             self.metrics_train.append([])
         self.metrics_train[-1].append(metrics)
 
     def add_eval_metrics(self, **metrics: float):
-        """Add metrics for evaluation."""
         self.metrics_eval.append(metrics)
 
     def stamp(self, step: int):
-        """Stamp current iterations with estimated time."""
         metrics = {name: [] for name in self.metrics_train[-1][0]}
 
         # Average last collected training metrics.
@@ -48,7 +44,6 @@ class Recorder(object):
         self.stamps.append((step, time.time()))
 
     def format(self, fstring: str) -> str:
-        """Return string formatted with last recorded metrics."""
         train_params = {f'train_{k}': v
                         for k, v in self.metrics_train[-1].items()}
         eval_params = {f'eval_{k}': v
@@ -57,7 +52,6 @@ class Recorder(object):
         return fstring.format(**train_params, **eval_params)
 
     def summarize(self) -> Dict[str, Any]:
-        """Summarize stamps and records."""
         steps, times = list(zip(*self.stamps))
         steps = list(steps[1:])
         times = [times[i + 1] - times[i] for i in range(len(times) - 1)]
@@ -68,32 +62,17 @@ class Recorder(object):
                 'eval': self.metrics_eval}
 
     def state_dict(self) -> Dict[str, Any]:
-        """Return state dictionary of this class."""
         return {'metrics_train': self.metrics_train,
                 'metrics_eval': self.metrics_eval,
                 'stamps': self.stamps}
 
     def load_state_dict(self, state_dict: Dict[str, Any]):
-        """Restore this class from the given state dictionary."""
         self.metrics_train = state_dict['metrics_train']
         self.metrics_eval = state_dict['metrics_eval']
         self.stamps = state_dict['stamps']
 
 
 class Trainer(object):
-    """Simple integrated model trainer.
-
-    Arguments:
-        train_loader (DataLoader): Data loader for training.
-        eval_loader (DataLoader): Data loader for evaluation.
-        model: The model based on ``torch.nn.Module``.
-        optimizer: The optimizer based on ``torch.optim.Optimizer``.
-        scheduler: Learning rate scheduler.
-        criterion: Objective loss function.
-        recorder (Recorder): Metrics recorder.
-        use_amp (bool): The boolean determining whether to use automatic mixed
-            precision.
-    """
     def __init__(self,
                  train_loader: DataLoader,
                  eval_loader: DataLoader,
@@ -119,7 +98,6 @@ class Trainer(object):
         self.use_amp = use_amp
 
     def train(self, batch: Optional[int] = None):
-        """Train model and record metrics for training."""
         # Prepare training.
         self.model.train()
         self.optimizer.zero_grad()
@@ -148,7 +126,6 @@ class Trainer(object):
         self.recorder.add_train_metrics(loss=loss.item())
 
     def evaluate(self, batch: Optional[int] = None):
-        """Evaluate model and record its metrics."""
         with torch.no_grad():
             # Prepare evaluation.
             self.model.eval()
@@ -164,7 +141,6 @@ class Trainer(object):
         self.recorder.add_eval_metrics(loss=loss.item())
 
     def state_dict(self) -> Dict[str, Any]:
-        """Return state dictionary of this class."""
         state_dict = {'train_loader': self.train_loader.tell(),
                       'eval_loader': self.eval_loader.tell(),
                       'model': self.model.state_dict(),
@@ -179,7 +155,6 @@ class Trainer(object):
         return state_dict
 
     def load_state_dict(self, state_dict: Dict[str, Any]):
-        """Restore this class from the given state dictionary."""
         self.train_loader.seek(state_dict['train_loader'])
         self.eval_loader.seek(state_dict['eval_loader'])
         self.model.load_state_dict(state_dict['model'])

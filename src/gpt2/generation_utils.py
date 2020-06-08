@@ -7,16 +7,6 @@ from typing import Tuple
 
 
 class Generator(object):
-    """Simple sentence generator.
-
-    Arguments:
-        vocab (Vocabulary): The vocabulary object.
-        tokenizer (Tokenizer): Subword tokenizer.
-        model: The model based on ``torch.nn.Module``.
-        seq_len (int): The maximum length of each sequence.
-        temperature (float): The scale factor of prediction logits.
-        topk (int): The number of next-word candidates.
-    """
     def __init__(self,
                  vocab: Vocabulary,
                  tokenizer: Tokenizer,
@@ -70,16 +60,5 @@ class Generator(object):
         return sentence, log_prob
 
     def generate(self, context: str, samples: int = 20) -> Tuple[str, float]:
-        """Generate sentence from the given context.
-
-        Arguments:
-            context (str): Context sentence.
-            samples (int): The number of samples to generate.
-
-        Returns:
-            * A generated sentence which has highest probability.
-            * Log probability of the generated sentence.
-
-        """
         sentences = [self._sample(context) for _ in range(samples)]
         return max(sentences, key=lambda s: s[1])
