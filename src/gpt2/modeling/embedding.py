@@ -13,10 +13,6 @@ class PositionalEmbedding(nn.Embedding):
     Note:
         The parameter ``num_embeddings`` implies the length of each sequence.
     """
-    def reset_parameters(self):
-        """Initialize embedding matrix."""
-        nn.init.normal_(self.weight, std=0.02)
-
     def forward(self, x: torch.Tensor, offset: int = 0) -> torch.Tensor:
         """Embed positional information to vectors.
 
@@ -35,18 +31,11 @@ class PositionalEmbedding(nn.Embedding):
         # Embed the position indices to vectors.
         return super().forward(position)
 
-
-class TokenEmbedding(nn.Embedding):
-    """Implementation of token embedding layer.
-
-    Note:
-        The parameter ``num_embeddings`` implies the number of subwords in
-        vocabulary.
-    """
     def reset_parameters(self):
-        """Initialize embedding matrix."""
         nn.init.normal_(self.weight, std=0.02)
 
+
+class TokenEmbedding(nn.Embedding):
     def forward(self,
                 x: torch.Tensor,
                 transposed: bool = False) -> torch.Tensor:
@@ -70,3 +59,6 @@ class TokenEmbedding(nn.Embedding):
             return torch.matmul(x, self.weight.transpose(0, 1))
 
         return super().forward(x)
+
+    def reset_parameters(self):
+        nn.init.normal_(self.weight, std=0.02)
