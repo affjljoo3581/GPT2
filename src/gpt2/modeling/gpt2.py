@@ -27,23 +27,6 @@ class DecoderBlock(nn.Module):
                 x: torch.Tensor,
                 past: Optional[Tuple[torch.Tensor]] = None,
                 mask: Optional[torch.Tensor] = None) -> torch.Tensor:
-        """Apply transformer-based decoder layer.
-
-        Arguments:
-            x (tensor): Input tensor of shape `(..., seq_len, dims)`.
-            past (tuple): The tuple of previously calculated key-value tensors
-                of shape `(..., past_len, dims)`.
-            mask (tensor): Masking tensor of shape `(..., query_len, kv_len)`.
-
-        Returns:
-            * An output tensor which has same shape as ``q``.
-            * A tuple of projected key-value tensors of shape
-              `(..., past_len + kv_len, dims)`.
-
-        Note:
-            In case of GPT-2, layer normalizations are performed before the
-            attention and feed-forward layer respectively.
-        """
         x = self.ln_attn(x)
         a, past = self.attn(x, x, x, past, mask)
 
@@ -80,18 +63,6 @@ class GPT2(nn.Module):
                 x: torch.Tensor,
                 past: Optional[Tuple[torch.Tensor]] = None
                 ) -> Tuple[torch.Tensor, List[Tuple[torch.Tensor]]]:
-        """Predict next words from the given subsequences.
-
-        Argument:
-            x: Input tensor of shape `(..., seq_len)`.
-            past: The list of tuples containing previously calculated key-value
-                tensors of shape `(..., past_len, dims)`.
-
-        Returns:
-            * A logits of next-word distributions.
-            * A list of tuples containing projected key-value tensors of shape
-              `(..., past_len + seq_len, dims)`.
-        """
         # The past key-value pairs imply that input sequences are shifted.
         offset = past[0][0].size(-2) if past is not None else 0
 

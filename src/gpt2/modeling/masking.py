@@ -8,15 +8,6 @@ class PadMasking(nn.Module):
         self.pad_idx = pad_idx
 
     def forward(self, x: torch.Tensor, offset: int = 0) -> torch.Tensor:
-        """Create masking tensor to ignore paddings.
-
-        Arguments:
-            x (tensor): Input tensor of shape `(..., seq_len)`.
-            offset (int): The offset of input sequences.
-
-        Returns:
-            A masking tensor of shape `(..., 1, seq_len + offset)`.
-        """
         is_pad = (x == self.pad_idx).unsqueeze(-2)
         shifted = torch.zeros(x.size()[:-1] + (1, offset,),
                               dtype=torch.bool, device=x.device)
@@ -25,15 +16,6 @@ class PadMasking(nn.Module):
 
 class FutureMasking(nn.Module):
     def forward(self, x: torch.Tensor, offset: int = 0) -> torch.Tensor:
-        """Create masking tensor to ignore the future tokens.
-
-        Arguments:
-            x (tensor): Input tensor of shape `(..., seq_len)`.
-            offset (int): The offset of input sequences.
-
-        Returns:
-            A masking tensor of shape `(...1, seq_len, seq_len + offset)`.
-        """
         seq_len = x.size(-1)
 
         # Create upper triangular matrix.
