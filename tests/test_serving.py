@@ -57,7 +57,7 @@ def test_data_loader_fetches_well(mock_open):
         fp.write(_fake_corpus)
 
     # Create data loader.
-    vocab = Vocabulary(vocab='vocab')
+    vocab = Vocabulary(vocab_path='vocab')
     loader = DataLoader(vocab, corpus='corpus', seq_len=10)
 
     # Check if data loader fetches single sequence.

@@ -31,7 +31,7 @@ def test_data_loader_fetches_well(mock_open):
         fp.write('a\nb\nc\nd')
 
     # Create vocabulary.
-    vocab = Vocabulary(vocab='vocab')
+    vocab = Vocabulary(vocab_path='vocab')
 
     # Test if vocabulary maps tokens to indices correctly.
     assert vocab['a'] == 0
