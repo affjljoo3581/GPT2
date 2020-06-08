@@ -2,17 +2,17 @@ from typing import Union
 
 
 class Vocabulary(object):
-    """Vocabulary class for mapping tokens to indices.
+    """Vocabulary for mapping tokens to indices.
 
     Arguments:
-        vocab (str): Vocabulary file path.
+        vocab_path (str): Vocabulary file path.
         unk_token (str): Unknown token name.
         bos_token (str): Begin-of-sentence token name.
         eos_token (str): End-of-sentence token name.
         pad_token (str): Pad token name.
     """
     def __init__(self,
-                 vocab: str,
+                 vocab_path: str,
                  unk_token: str = '<unk>',
                  bos_token: str = '<s>',
                  eos_token: str = '</s>',
@@ -23,7 +23,7 @@ class Vocabulary(object):
         self.pad_token = pad_token
 
         # Create vocabulary dictionary which maps from subwords to indices.
-        with open(vocab, 'r', encoding='utf-8') as fp:
+        with open(vocab_path, 'r', encoding='utf-8') as fp:
             self.words = fp.read().split()
             self.vocab = {word: i for i, word in enumerate(self.words)}
 
