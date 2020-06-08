@@ -19,11 +19,26 @@ class Tokenizer(object):
         self.max_word_len = max_word_len
 
     def encode(self, text: str) -> List[str]:
+        """Encode sentence to subword tokens.
+
+        Arguments:
+            text (str): Input sentence.
+
+        Returns:
+            A list of subword tokens."""
         return [token
                 for normalized in self._normalize(text)
                 for token in self._tokenize(normalized)]
 
     def decode(self, tokens: List[str]) -> str:
+        """Decode subword tokens to plain text.
+
+        Arguments:
+            tokens (list): The list of subword tokens.
+
+        Returns:
+            A merged plain text.
+        """
         return (' '.join(tokens).replace(' ##', '')
                                 .replace(' .', '.')
                                 .replace(' ?', '?')
