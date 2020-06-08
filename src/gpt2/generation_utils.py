@@ -12,7 +12,7 @@ class Generator(object):
                  tokenizer: Tokenizer,
                  model: nn.Module,
                  seq_len: int,
-                 temperature: (float) = 0.8,
+                 temperature: float = 0.8,
                  topk: int = 40):
         self.vocab = vocab
         self.tokenizer = tokenizer
