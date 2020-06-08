@@ -56,7 +56,6 @@ class GPT2(nn.Module):
 
         self.decoders = nn.ModuleList([
             DecoderBlock(heads, dims, rate, dropout) for _ in range(layers)])
-
         self.ln_head = MyLayerNorm(dims)
 
     def forward(self,
