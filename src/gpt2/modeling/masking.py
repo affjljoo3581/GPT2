@@ -3,14 +3,6 @@ import torch.nn as nn
 
 
 class PadMasking(nn.Module):
-    """Implementation of pad-masking layer.
-
-    Pad-masking tempts the model to avoid attending to values which are padded
-    to the sequences.
-
-    Arguments:
-        pad_idx (int): The index of pad token to ignore in attention.
-    """
     def __init__(self, pad_idx: int):
         super().__init__()
         self.pad_idx = pad_idx
@@ -32,11 +24,6 @@ class PadMasking(nn.Module):
 
 
 class FutureMasking(nn.Module):
-    """Implementation of future-masking layer.
-
-    Future-masking helps preventing the model from attending to the future
-    tokens in the sequences.
-    """
     def forward(self, x: torch.Tensor, offset: int = 0) -> torch.Tensor:
         """Create masking tensor to ignore the future tokens.
 
