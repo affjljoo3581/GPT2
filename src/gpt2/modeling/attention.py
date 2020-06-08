@@ -5,11 +5,6 @@ from typing import Optional, Tuple
 
 
 class BaseAttention(nn.Module):
-    """Implementation of single attention layer.
-
-    Arguments:
-        dropout (float): The probability that each value is dropped.
-    """
     def __init__(self, dropout: float = 0.1):
         super().__init__()
         self.dropout = nn.Dropout(dropout)
@@ -32,8 +27,6 @@ class BaseAttention(nn.Module):
         """
         # Calculate attention weight logits.
         x = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(k.size(-1))
-
-        # Mask the attention logits.
         if mask is not None:
             x += mask.float() * x.new_tensor(-1e9, dtype=torch.float32)
 
@@ -45,12 +38,6 @@ class BaseAttention(nn.Module):
 
 
 class MultiHeadAttention(BaseAttention):
-    """Implementation of multi-headed attention layer.
-
-    Arguments:
-        heads (int): The number of attention heads.
-        dropout (float): The probability that each value is dropped.
-    """
     def __init__(self, heads: int, dropout: float = 0.1):
         super().__init__(dropout)
         self.heads = heads
@@ -92,13 +79,6 @@ class MultiHeadAttention(BaseAttention):
 
 
 class AttentionBlock(nn.Module):
-    """Multi-headed attention with linear projections.
-
-    Arguments:
-        heads (int): The number of attention heads.
-        dims (int): The dimension of input tensors.
-        dropout (float): The probability that each value is dropped.
-    """
     def __init__(self, heads: int, dims: int, dropout: float = 0.1):
         super().__init__()
         self.attn = MultiHeadAttention(heads, dropout)
