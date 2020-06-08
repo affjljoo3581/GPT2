@@ -35,15 +35,6 @@ class DataLoader(object):
               batch: Optional[int] = None
               ) -> Union[Dict[str, torch.Tensor],
                          List[Dict[str, torch.Tensor]]]:
-        """Fetch sequences from the corpus.
-
-        Arguments:
-            batch (int): The number of sequences in batch.
-
-        Returns:
-            A tensor of shape `(seq_len)` is ``batch==None`` else
-            `(batch, seq_len)`.
-        """
         if batch is None:
             data = self._fetch_one()
         else:
