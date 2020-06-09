@@ -13,23 +13,22 @@ class DataLoader(object):
         self.corpus_fp.close()
 
     def _fetch_one(self) -> Dict[str, torch.Tensor]:
-        while True:
-            line = self.corpus_fp.readline()
-            if not line:
-                self.corpus_fp.seek(0)
-                continue
+        line = self.corpus_fp.readline()
+        if not line:
+            self.corpus_fp.seek(0)
+            return self._fetch_one()
 
-            # Map each subword to its index.
-            indices = [self.vocab[t] for t in line.split()]
-            if len(indices) > self.seq_len - 2:
-                continue
+        # Map each subword to its index.
+        indices = [self.vocab[t] for t in line.split()]
+        if len(indices) > self.seq_len - 2:
+            continue
 
-            # Add speical tokens to the sequence.
-            indices = [self.vocab.bos_idx] + indices + [self.vocab.eos_idx]
-            indices += ([self.vocab.pad_idx]
-                        * (self.seq_len - len(indices) + 1))
+        # Add speical tokens to the sequence.
+        indices = [self.vocab.bos_idx] + indices + [self.vocab.eos_idx]
+        indices += ([self.vocab.pad_idx]
+                    * (self.seq_len - len(indices) + 1))
 
-            return {'input': indices[:-1], 'output': indices[1:]}
+        return {'input': indices[:-1], 'output': indices[1:]}
 
     def fetch(self,
               batch: Optional[int] = None
