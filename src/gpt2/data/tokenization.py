@@ -54,10 +54,9 @@ class Tokenizer(object):
 
     def _tokenize(self, text: str) -> List[str]:
         subwords = []
-
         for token in text.split():
             # Skip too long tokens.
-            if len(token) > 100:
+            if len(token) > self.max_word_len:
                 subwords.append(self.vocab.unk_token)
                 continue
 
