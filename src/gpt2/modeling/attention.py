@@ -86,13 +86,11 @@ class AttentionBlock(nn.Module):
     k               float           (..., kv_len, dims)
     v               float           (..., kv_len, dims)
     mask            bool            (..., query_len, kv_len)
-    past (tuple)
-                    float           (..., past_len, dims)
+    past            float           (..., past_len, dims)
                     float           (..., past_len, dims)
     ---------------------------------------------------------------------------
-    output          float           (..., query_len, dims)
-    present (tuple)
-                    float           (..., past_len + query_len, dims)
+    output 1        float           (..., query_len, dims)
+    output 2        float           (..., past_len + query_len, dims)
                     float           (..., past_len + query_len, dims)
     ===========================================================================
     """
