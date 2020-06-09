@@ -85,13 +85,11 @@ class AttentionBlock(nn.Module):
     q               float           (..., query_len, dims)
     k               float           (..., kv_len, dims)
     v               float           (..., kv_len, dims)
-    mask            bool            (..., query_len, kv_len)
-    past            float           (..., past_len, dims)
-                    float           (..., past_len, dims)
+    past (*)        float           (..., past_len, dims)
+    mask            bool            (..., query_len, past_len + kv_len)
     ---------------------------------------------------------------------------
     output 1        float           (..., query_len, dims)
-    output 2        float           (..., past_len + query_len, dims)
-                    float           (..., past_len + query_len, dims)
+    output 2 (*)    float           (..., past_len + kv_len, dims)
     ===========================================================================
     """
     def __init__(self, heads: int, dims: int, dropout: float = 0.1):

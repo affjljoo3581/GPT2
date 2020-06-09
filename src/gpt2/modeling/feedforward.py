@@ -2,6 +2,14 @@ import torch.nn as nn
 
 
 class PositionwiseFeedForward(nn.Sequential):
+    """
+    Tensor          Type            Shape
+    ===========================================================================
+    input           float           (..., dims)
+    ---------------------------------------------------------------------------
+    output          float           (..., dims)
+    ===========================================================================
+    """
     def __init__(self, dims: int, rate: int = 4, dropout: float = 0.1):
         super().__init__(
             nn.Linear(dims, dims * rate),

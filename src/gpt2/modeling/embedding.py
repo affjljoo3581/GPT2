@@ -3,6 +3,14 @@ import torch.nn as nn
 
 
 class PositionalEmbedding(nn.Embedding):
+    """
+    Tensor          Type            Shape
+    ===========================================================================
+    input           long            (..., seq_len)
+    ---------------------------------------------------------------------------
+    output          float           (..., seq_len, embedding_dim)
+    ===========================================================================
+    """
     def reset_parameters(self):
         nn.init.normal_(self.weight, std=0.02)
 
@@ -17,6 +25,16 @@ class PositionalEmbedding(nn.Embedding):
 
 
 class TokenEmbedding(nn.Embedding):
+    """
+    Tensor          Type            Shape
+    ===========================================================================
+    input           long or float  (..., seq_len)
+                                    or (..., seq_len, embedding_dim)
+    ---------------------------------------------------------------------------
+    output          float           (..., seq_len, embedding_dim)
+                                    or (..., seq_len, num_embeddings)
+    ===========================================================================
+    """
     def reset_parameters(self):
         nn.init.normal_(self.weight, std=0.02)
 

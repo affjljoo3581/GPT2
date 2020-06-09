@@ -16,6 +16,17 @@ except ModuleNotFoundError:
 
 
 class DecoderBlock(nn.Module):
+    """
+    Tensor          Type            Shape
+    ===========================================================================
+    x               float           (..., seq_len, dims)
+    past (*)        float           (..., past_len, dims)
+    mask            bool            (..., seq_len, past_len + seq_len)
+    ---------------------------------------------------------------------------
+    output 1        float           (..., seq_len, dims)
+    output 2 (*)    float           (..., past_len + seq_len, dims)
+    ===========================================================================
+    """
     def __init__(self, heads: int, dims: int, rate: int, dropout: float = 0.1):
         super().__init__()
         self.attn = AttentionBlock(heads, dims, dropout)
@@ -37,6 +48,16 @@ class DecoderBlock(nn.Module):
 
 
 class GPT2(nn.Module):
+    """
+    Tensor          Type            Shape
+    ===========================================================================
+    x               long            (..., seq_len)
+    past (**)       float           (..., past_len, dims)
+    ---------------------------------------------------------------------------
+    output 1        float           (..., seq_len, dims)
+    output 2 (**)   float           (..., past_len + seq_len, dims)
+    ===========================================================================
+    """
     def __init__(self,
                  layers: int,
                  pad_idx: int,
