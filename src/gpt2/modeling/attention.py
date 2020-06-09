@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 
 
 class BaseAttention(nn.Module):
-    """
+    """```
     Tensor          Type            Shape
     ===========================================================================
     q               float           (..., query_len, dims)
@@ -38,7 +38,7 @@ class BaseAttention(nn.Module):
 
 
 class MultiHeadAttention(BaseAttention):
-    """
+    """```
     Tensor          Type            Shape
     ===========================================================================
     q               float           (..., query_len, dims)
@@ -79,7 +79,7 @@ class MultiHeadAttention(BaseAttention):
 
 
 class AttentionBlock(nn.Module):
-    """
+    """```
     Tensor          Type            Shape
     ===========================================================================
     q               float           (..., query_len, dims)
