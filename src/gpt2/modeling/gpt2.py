@@ -16,7 +16,7 @@ except ModuleNotFoundError:
 
 
 class DecoderBlock(nn.Module):
-    """```
+    """
     Tensor          Type            Shape
     ===========================================================================
     x               float           (..., seq_len, dims)
@@ -48,7 +48,7 @@ class DecoderBlock(nn.Module):
 
 
 class GPT2(nn.Module):
-    """```
+    """
     Tensor          Type            Shape
     ===========================================================================
     x               long            (..., seq_len)
