@@ -6,14 +6,14 @@ from typing import Optional, Tuple
 
 class BaseAttention(nn.Module):
     """
-    Tensor      Type        Shape
+    Tensor          Type            Shape
     ===========================================================================
-    q           float       (..., query_len, dims)
-    k           float       (..., kv_len, dims)
-    v           float       (..., kv_len, dims)
-    mask        bool        (..., query_len, kv_len)
+    q               float           (..., query_len, dims)
+    k               float           (..., kv_len, dims)
+    v               float           (..., kv_len, dims)
+    mask            bool            (..., query_len, kv_len)
     ---------------------------------------------------------------------------
-    output      float       (..., query_len, dims)
+    output          float           (..., query_len, dims)
     ===========================================================================
     """
     def __init__(self, dropout: float = 0.1):
@@ -38,6 +38,17 @@ class BaseAttention(nn.Module):
 
 
 class MultiHeadAttention(BaseAttention):
+    """
+    Tensor          Type            Shape
+    ===========================================================================
+    q               float           (..., query_len, dims)
+    k               float           (..., kv_len, dims)
+    v               float           (..., kv_len, dims)
+    mask            bool            (..., query_len, kv_len)
+    ---------------------------------------------------------------------------
+    output          float           (..., query_len, dims)
+    ===========================================================================
+    """
     def __init__(self, heads: int, dropout: float = 0.1):
         super().__init__(dropout)
         self.heads = heads
@@ -68,6 +79,23 @@ class MultiHeadAttention(BaseAttention):
 
 
 class AttentionBlock(nn.Module):
+    """
+    Tensor          Type            Shape
+    ===========================================================================
+    q               float           (..., query_len, dims)
+    k               float           (..., kv_len, dims)
+    v               float           (..., kv_len, dims)
+    mask            bool            (..., query_len, kv_len)
+    past (tuple)
+                    float           (..., past_len, dims)
+                    float           (..., past_len, dims)
+    ---------------------------------------------------------------------------
+    output          float           (..., query_len, dims)
+    present (tuple)
+                    float           (..., past_len + query_len, dims)
+                    float           (..., past_len + query_len, dims)
+    ===========================================================================
+    """
     def __init__(self, heads: int, dims: int, dropout: float = 0.1):
         super().__init__()
         self.attn = MultiHeadAttention(heads, dropout)
