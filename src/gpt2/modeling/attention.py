@@ -5,6 +5,17 @@ from typing import Optional, Tuple
 
 
 class BaseAttention(nn.Module):
+    """
+    Tensor      Type        Shape
+    ===========================================================================
+    q           float       (..., query_len, dims)
+    k           float       (..., kv_len, dims)
+    v           float       (..., kv_len, dims)
+    mask        bool        (..., query_len, kv_len)
+    ---------------------------------------------------------------------------
+    output      float       (..., query_len, dims)
+    ===========================================================================
+    """
     def __init__(self, dropout: float = 0.1):
         super().__init__()
         self.dropout = nn.Dropout(dropout)
