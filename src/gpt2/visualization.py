@@ -27,8 +27,8 @@ def _visualize_metrics(args: argparse.Namespace):
 
     # Plot loss for training and evaluation.
     plt.subplot(221)
-    plt.plot(steps, train_metrics['loss'], label='training')
     plt.plot(steps, eval_metrics['loss'], label='evaluation')
+    plt.plot(steps, train_metrics['loss'], label='training')
     plt.title('Cross-Entropy Loss')
     plt.xlabel('Iterations')
     plt.ylabel('Loss')
@@ -36,8 +36,8 @@ def _visualize_metrics(args: argparse.Namespace):
 
     # Plot log-scale loss for training and evaluation.
     plt.subplot(222)
-    plt.plot(steps, train_metrics['loss'], label='training')
     plt.plot(steps, eval_metrics['loss'], label='evaluation')
+    plt.plot(steps, train_metrics['loss'], label='training')
     plt.xscale('log')
     plt.title('Log-Scale Cross-Entropy Loss')
     plt.xlabel('Iterations (Log Scale)')
@@ -52,8 +52,8 @@ def _visualize_metrics(args: argparse.Namespace):
                    + eval_metrics['loss'][-target_range:])
 
     plt.subplot(223)
-    plt.plot(steps, train_metrics['loss'], label='training')
     plt.plot(steps, eval_metrics['loss'], label='evaluation')
+    plt.plot(steps, train_metrics['loss'], label='training')
     plt.title('Loss')
     plt.xlabel('Iterations')
     plt.ylabel('Loss')
@@ -65,11 +65,11 @@ def _visualize_metrics(args: argparse.Namespace):
 
     plt.subplot(224)
     plt.plot(steps[-target_range:],
-             train_metrics['loss'][-target_range:],
-             label='training')
-    plt.plot(steps[-target_range:],
              eval_metrics['loss'][-target_range:],
              label='evaluation')
+    plt.plot(steps[-target_range:],
+             train_metrics['loss'][-target_range:],
+             label='training')
     plt.title('Loss')
     plt.xlabel('Iterations')
     plt.ylabel('Loss')
