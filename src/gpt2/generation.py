@@ -8,7 +8,7 @@ from .generation_utils import Generator
 
 def _generate_sentence(args: argparse.Namespace):
     # Create vocabulary and subword tokenizer.
-    vocab = Vocabulary(vocab=args.vocab,
+    vocab = Vocabulary(vocab_path=args.vocab,
                        unk_token=args.unk_token,
                        bos_token=args.bos_token,
                        eos_token=args.eos_token,
