@@ -39,7 +39,7 @@ def _create_tqdm_progress(iterations: int, start_iters: int = 0) -> tqdm.tqdm:
 
 def _train_gpt2_model(args: argparse.Namespace):
     # Prepare data loaders for training and evaluation.
-    vocab = Vocabulary(vocab=args.vocab,
+    vocab = Vocabulary(vocab_path=args.vocab,
                        unk_token=args.unk_token,
                        bos_token=args.bos_token,
                        eos_token=args.eos_token,
