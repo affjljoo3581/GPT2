@@ -23,7 +23,7 @@ def _visualize_metrics(args: argparse.Namespace):
     train_metrics = _extract_dict_from_list(ckpt['metrics']['train'])
     eval_metrics = _extract_dict_from_list(ckpt['metrics']['eval'])
 
-    plt.figure(figsize=(15, 10))
+    plt.figure(figsize=(12, 8))
 
     # Plot loss for training and evaluation.
     plt.subplot(221)
@@ -75,9 +75,13 @@ def _visualize_metrics(args: argparse.Namespace):
     plt.ylabel('Loss')
     plt.legend(loc='top right')
 
-    # Save figure.
+    # Save figure or show plot window.
     plt.tight_layout()
-    plt.savefig(args.figure)
+
+    if args.interactive:
+        plt.show()
+    else:
+        plt.savefig(args.figure)
 
 
 def add_subparser(subparsers: argparse._SubParsersAction):
@@ -90,5 +94,8 @@ def add_subparser(subparsers: argparse._SubParsersAction):
     parser.add_argument('--checkpoint',
                         required=True,
                         help='checkpoint file path')
+    parser.add_argument('--interactive',
+                        action='store_true',
+                        help='show interactive plot window')
 
     parser.set_defaults(func=_visualize_metrics)
