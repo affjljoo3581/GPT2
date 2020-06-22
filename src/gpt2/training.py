@@ -70,7 +70,7 @@ def _train_gpt2_model(args: argparse.Namespace):
     criterion = nn.CrossEntropyLoss(ignore_index=vocab.pad_idx)
     optimizer = Adam(model.parameters(),
                      lr=args.base_lr,
-                     weigth_decay=args.wd_rate)
+                     weight_decay=args.wd_rate)
 
     scheduler = _create_linear_decay_scheduler(optimizer,
                                                warmup_iters=args.warmup_iters,
