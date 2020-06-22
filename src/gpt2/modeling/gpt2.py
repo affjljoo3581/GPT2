@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from .masking import PadMasking, FutureMasking
 from .embedding import PositionalEmbedding, TokenEmbedding
-from .attention import AttentionBlock
+from .attention import AttentionLayer
 from .feedforward import PositionwiseFeedForward
 from typing import Optional, Tuple, List
 
@@ -10,9 +10,9 @@ from typing import Optional, Tuple, List
 # Try to import `apex` library for using fused layer-norm. Note that if `apex`
 # is installed, then ``FusedLayerNorm`` would be used automatically.
 try:
-    from apex.normalization import FusedLayerNorm as MyLayerNorm
+    from apex.normalization import FusedLayerNorm as LayerNorm
 except ModuleNotFoundError:
-    from torch.nn import LayerNorm as MyLayerNorm
+    from torch.nn import LayerNorm
 
 
 class TransformerLayer(nn.Module):
@@ -29,10 +29,10 @@ class TransformerLayer(nn.Module):
     """
     def __init__(self, heads: int, dims: int, rate: int, dropout: float = 0.1):
         super().__init__()
-        self.attn = AttentionBlock(heads, dims, dropout)
+        self.attn = AttentionLayer(heads, dims, dropout)
         self.ff = PositionwiseFeedForward(dims, rate, dropout)
-        self.ln_attn = MyLayerNorm(dims)
-        self.ln_ff = MyLayerNorm(dims)
+        self.ln_attn = LayerNorm(dims)
+        self.ln_ff = LayerNorm(dims)
 
     def forward(self,
                 x: torch.Tensor,
@@ -77,7 +77,6 @@ class GPT2(nn.Module):
         self.transformers = nn.ModuleList([
             TransformerLayer(heads, dims, rate, dropout)
             for _ in range(layers)])
-        self.ln_head = MyLayerNorm(dims)
 
     def forward(self,
                 x: torch.Tensor,
@@ -100,7 +99,6 @@ class GPT2(nn.Module):
             present.append(p)
 
         # Predict next words by projecting representations to vocabulary space.
-        x = self.ln_head(x)
         x = self.token_embedding(x, transposed=True)
 
         return x, present
