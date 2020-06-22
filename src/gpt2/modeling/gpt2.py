@@ -15,7 +15,7 @@ except ModuleNotFoundError:
     from torch.nn import LayerNorm as MyLayerNorm
 
 
-class DecoderBlock(nn.Module):
+class TransformerLayer(nn.Module):
     """
     Tensor          Type            Shape
     ===========================================================================
@@ -38,11 +38,10 @@ class DecoderBlock(nn.Module):
                 x: torch.Tensor,
                 past: Optional[Tuple[torch.Tensor]] = None,
                 mask: Optional[torch.Tensor] = None) -> torch.Tensor:
-        x = self.ln_attn(x)
         a, past = self.attn(x, x, x, past, mask)
+        x = self.ln_attn(x + a)
 
-        x = self.ln_ff(x + a)
-        a = self.ff(x)
+        a = self.ln_ff(x + self.ff(x))
 
         return x + a, past
 
@@ -75,8 +74,9 @@ class GPT2(nn.Module):
         self.token_embedding = TokenEmbedding(words, dims)
         self.dropout_embedding = nn.Dropout(dropout)
 
-        self.decoders = nn.ModuleList([
-            DecoderBlock(heads, dims, rate, dropout) for _ in range(layers)])
+        self.transformers = nn.ModuleList([
+            TransformerLayer(heads, dims, rate, dropout)
+            for _ in range(layers)])
         self.ln_head = MyLayerNorm(dims)
 
     def forward(self,
@@ -95,8 +95,8 @@ class GPT2(nn.Module):
 
         # Apply transformer-based decoder layers sequentially.
         present = []
-        for i, decoder in enumerate(self.decoders):
-            x, p = decoder(x, past[i] if past is not None else None, mask)
+        for i, transformer in enumerate(self.transformers):
+            x, p = transformer(x, past[i] if past is not None else None, mask)
             present.append(p)
 
         # Predict next words by projecting representations to vocabulary space.
