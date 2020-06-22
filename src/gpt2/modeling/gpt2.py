@@ -41,9 +41,9 @@ class TransformerLayer(nn.Module):
         a, past = self.attn(x, x, x, past, mask)
         x = self.ln_attn(x + a)
 
-        a = self.ln_ff(x + self.ff(x))
+        x = self.ln_ff(x + self.ff(x))
 
-        return x + a, past
+        return x, past
 
 
 class GPT2(nn.Module):
