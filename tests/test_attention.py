@@ -1,11 +1,11 @@
 import torch
 from gpt2.modeling.attention import (BaseAttention,
                                      MultiHeadAttention,
-                                     AttentionBlock)
+                                     AttentionLayer)
 
 
-def test_the_shape_from_base_attention_layer():
-    # Create single attention layer.
+def test_the_shape_from_base_attention():
+    # Create new single attention.
     layer = BaseAttention()
 
     # Check the shape of attention.
@@ -19,8 +19,8 @@ def test_the_shape_from_base_attention_layer():
     assert layer(q, k, v, mask).shape == (3, 8, 4, 10, 32)
 
 
-def test_base_attention_layer_with_simple_data():
-    # Create single attention layer.
+def test_base_attention_with_simple_data():
+    # Create single attention.
     layer = BaseAttention().eval()
 
     # Test for all-one tensors.
@@ -37,8 +37,8 @@ def test_base_attention_layer_with_simple_data():
     assert (layer(q, k, v, mask) == expected).all()
 
 
-def test_the_shape_from_multihead_attention_layer():
-    # Create multi-headed attention layer.
+def test_the_shape_from_multihead_attention():
+    # Create new multi-headed attention.
     layer = MultiHeadAttention(heads=2)
 
     # Check the shape of attention.
@@ -57,8 +57,8 @@ def test_the_shape_from_multihead_attention_layer():
     assert layer(q, k, v, mask).shape == (3, 8, 4, 10, 32)
 
 
-def test_multihead_attention_layer_with_simple_data():
-    # Create multi-headed attention layer.
+def test_multihead_attention_with_simple_data():
+    # Create new multi-headed attention.
     layer = MultiHeadAttention(heads=2).eval()
 
     # Test for all-one tensors.
@@ -79,9 +79,9 @@ def test_multihead_attention_layer_with_simple_data():
     assert (layer(q, k, v, mask) == expected).all()
 
 
-def test_the_shape_from_attention_block():
+def test_the_shape_from_attention_layer():
     # Create attention block layer.
-    layer = AttentionBlock(heads=2, dims=16)
+    layer = AttentionLayer(heads=2, dims=16)
 
     # Check the shape of attention.
     q = torch.zeros((10, 16))
