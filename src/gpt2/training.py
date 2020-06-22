@@ -9,6 +9,14 @@ from .modeling.gpt2 import GPT2
 from .training_utils import Recorder, Trainer
 
 
+# Try to import `apex` library for using fused optimizer. Note that if `apex`
+# is installed, then ``FusedAdam`` would be used automatically.
+try:
+    from apex.optimizers import FusedAdam as Adam
+except ModuleNotFoundError:
+    from torch.optim import AdamW as Adam
+
+
 def _create_linear_decay_scheduler(optimizer: optim.Optimizer,
                                    warmup_iters: int,
                                    iterations: int
@@ -60,7 +68,9 @@ def _train_gpt2_model(args: argparse.Namespace):
     # Use cross-entropy loss, AdamW optimizer and linear learning rate decaying
     # with warmup.
     criterion = nn.CrossEntropyLoss(ignore_index=vocab.pad_idx)
-    optimizer = optim.AdamW(model.parameters(), lr=args.base_lr)
+    optimizer = Adam(model.parameters(),
+                     lr=args.base_lr,
+                     weigth_decay=args.wd_rate)
 
     scheduler = _create_linear_decay_scheduler(optimizer,
                                                warmup_iters=args.warmup_iters,
@@ -166,6 +176,10 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         default=1e-4,
                         type=float,
                         help='maximum learning rate')
+    parser.add_argument('--wd_rate',
+                        default=1e-2,
+                        type=float,
+                        help='weight decay rate')
     parser.add_argument('--iterations',
                         default=100000,
                         type=int,
