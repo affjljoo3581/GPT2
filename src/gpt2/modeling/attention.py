@@ -78,7 +78,7 @@ class MultiHeadAttention(BaseAttention):
                 .view(q.size()[:-3] + (q.size(-2), v.size(-1) * self.heads)))
 
 
-class AttentionBlock(nn.Module):
+class AttentionLayer(nn.Module):
     """
     Tensor          Type            Shape
     ===========================================================================
