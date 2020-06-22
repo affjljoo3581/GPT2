@@ -93,7 +93,7 @@ class GPT2(nn.Module):
         x = self.token_embedding(x) + self.positional_embedding(x, offset)
         x = self.dropout_embedding(x)
 
-        # Apply transformer-based decoder layers sequentially.
+        # Apply transformer layers sequentially.
         present = []
         for i, transformer in enumerate(self.transformers):
             x, p = transformer(x, past[i] if past is not None else None, mask)
