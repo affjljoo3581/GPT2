@@ -1,10 +1,10 @@
 import torch
-from gpt2.modeling.gpt2 import DecoderBlock, GPT2
+from gpt2.modeling.gpt2 import TransformerLayer, GPT2
 
 
-def test_the_shape_from_decoder_block():
-    # Create transformer-based decoder layer.
-    layer = DecoderBlock(heads=2, dims=16, rate=4).eval()
+def test_the_shape_from_transformer_layer():
+    # Create new transformer layer.
+    layer = TransformerLayer(heads=2, dims=16, rate=4).eval()
 
     # Check shape-invariance for various shape.
     input_tensor = torch.zeros((10, 16))
