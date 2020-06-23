@@ -34,10 +34,10 @@ def test_data_loader_fetches_well(mock_open):
     vocab = Vocabulary(vocab_path='vocab')
 
     # Test if vocabulary maps tokens to indices correctly.
-    assert vocab['a'] == 0
-    assert vocab['b'] == 1
-    assert vocab['c'] == 2
-    assert vocab['d'] == 3
+    assert vocab['a'] == 3
+    assert vocab['b'] == 4
+    assert vocab['c'] == 5
+    assert vocab['d'] == 6
 
     # Test if vocabulary contains words accurately.
-    assert len(vocab) == 4
+    assert len(vocab) == 7

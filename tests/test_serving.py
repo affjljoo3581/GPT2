@@ -25,9 +25,6 @@ class _modified_open_wrapper(object):
 
 
 _fake_vocab = ('<unk>\n'
-               '<pad>\n'
-               '<s>\n'
-               '</s>\n'
                '##l\n'
                '##o\n'
                '##d\n'
@@ -62,8 +59,8 @@ def test_data_loader_fetches_well(mock_open):
 
     # Check if data loader fetches single sequence.
     data = loader.fetch()
-    input_expected = torch.tensor([2, 8, 10, 12, 7, 4, 6, 3, 1, 1])
-    output_expected = torch.tensor([8, 10, 12, 7, 4, 6, 3, 1, 1, 1])
+    input_expected = torch.tensor([0, 8, 10, 12, 7, 4, 6, 1, 2, 2])
+    output_expected = torch.tensor([8, 10, 12, 7, 4, 6, 1, 2, 2, 2])
 
     assert data['input'].shape == (10,)
     assert data['output'].shape == (10,)
@@ -73,10 +70,10 @@ def test_data_loader_fetches_well(mock_open):
 
     # Check if data loader fetches batch sequences.
     data = loader.fetch(batch=2)
-    input_expected = torch.tensor([[2, 8, 11, 5, 12, 7, 4, 6, 3, 1],
-                                   [2, 9, 4, 5, 12, 7, 4, 6, 3, 1]])
-    output_expected = torch.tensor([[8, 11, 5, 12, 7, 4, 6, 3, 1, 1],
-                                    [9, 4, 5, 12, 7, 4, 6, 3, 1, 1]])
+    input_expected = torch.tensor([[0, 8, 11, 5, 12, 7, 4, 6, 1, 2],
+                                   [0, 9, 4, 5, 12, 7, 4, 6, 1, 2]])
+    output_expected = torch.tensor([[8, 11, 5, 12, 7, 4, 6, 1, 2, 2],
+                                    [9, 4, 5, 12, 7, 4, 6, 1, 2, 2]])
 
     assert data['input'].shape == (2, 10)
     assert data['output'].shape == (2, 10)
