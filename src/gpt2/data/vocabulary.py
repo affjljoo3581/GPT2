@@ -14,8 +14,10 @@ class Vocabulary(object):
         self.pad_token = pad_token
 
         # Create vocabulary dictionary which maps from subwords to indices.
+        additional_tokens = [bos_token, eos_token, pad_token]
+
         with open(vocab_path, 'r', encoding='utf-8') as fp:
-            self.words = fp.read().split()
+            self.words = additional_tokens + fp.read().split()
             self.vocab = {word: i for i, word in enumerate(self.words)}
 
     def __getitem__(self, token: Union[int, str]) -> Union[str, int]:
