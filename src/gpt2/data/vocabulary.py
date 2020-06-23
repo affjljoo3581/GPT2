@@ -33,17 +33,21 @@ class Vocabulary(object):
         return len(self.words)
 
     @property
-    def unk_idx(self):
+    def special_tokens(self) -> int:
+        return 3
+
+    @property
+    def unk_idx(self) -> int:
         return self[self.unk_token]
 
     @property
-    def bos_idx(self):
+    def bos_idx(self) -> int:
         return self[self.bos_token]
 
     @property
-    def eos_idx(self):
+    def eos_idx(self) -> int:
         return self[self.eos_token]
 
     @property
-    def pad_idx(self):
+    def pad_idx(self) -> int:
         return self[self.pad_token]
