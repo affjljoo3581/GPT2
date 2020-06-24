@@ -70,7 +70,7 @@ def _train_gpt2_model(args: argparse.Namespace):
     lm_objective = LMObjective(model, pad_idx=vocab.pad_idx)
 
     # Use Adam optimizer and linear learning rate decaying with warmup.
-    optimizer = Adam(model.parameters,
+    optimizer = Adam(model.parameters(),
                      lr=args.base_lr,
                      weight_decay=args.wd_rate)
     scheduler = _create_linear_decay_scheduler(optimizer,
