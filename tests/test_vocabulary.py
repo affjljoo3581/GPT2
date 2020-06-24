@@ -40,4 +40,4 @@ def test_data_loader_fetches_well(mock_open):
     assert vocab['d'] == 6
 
     # Test if vocabulary contains words accurately.
-    assert len(vocab) == 7
+    assert len(vocab) == 8
