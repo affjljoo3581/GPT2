@@ -9,23 +9,23 @@ def test_the_shape_from_pad_masking_layer():
 
     # Test for various-dimensional tensors.
     input_tensor = torch.randint(8000, (30,), dtype=torch.long)
-    assert layer(input_tensor).shape == (1, 30)
+    assert layer(input_tensor).shape == (30, 30)
 
     input_tensor = torch.randint(8000, (16, 30,), dtype=torch.long)
-    assert layer(input_tensor).shape == (16, 1, 30)
+    assert layer(input_tensor).shape == (16, 30, 30)
 
     input_tensor = torch.randint(8000, (2, 5, 6, 4), dtype=torch.long)
-    assert layer(input_tensor).shape == (2, 5, 6, 1, 4)
+    assert layer(input_tensor).shape == (2, 5, 6, 4, 4)
 
     # Check if the masks are shifted by `offset`.
     input_tensor = torch.randint(8000, (30,), dtype=torch.long)
-    assert layer(input_tensor, offset=5).shape == (1, 35)
+    assert layer(input_tensor, offset=5).shape == (30, 35)
 
     input_tensor = torch.randint(8000, (16, 30,), dtype=torch.long)
-    assert layer(input_tensor, offset=7).shape == (16, 1, 37)
+    assert layer(input_tensor, offset=7).shape == (16, 30, 37)
 
     input_tensor = torch.randint(8000, (2, 5, 6, 4), dtype=torch.long)
-    assert layer(input_tensor, offset=2).shape == (2, 5, 6, 1, 6)
+    assert layer(input_tensor, offset=2).shape == (2, 5, 6, 4, 6)
 
 
 def test_pad_tokens_are_masked_well():
@@ -68,20 +68,20 @@ def test_the_shape_from_future_masking():
     assert layer(input_tensor).shape == (30, 30)
 
     input_tensor = torch.randint(8000, (16, 30,), dtype=torch.long)
-    assert layer(input_tensor).shape == (1, 30, 30)
+    assert layer(input_tensor).shape == (16, 30, 30)
 
     input_tensor = torch.randint(8000, (2, 5, 6, 4), dtype=torch.long)
-    assert layer(input_tensor).shape == (1, 1, 1, 4, 4)
+    assert layer(input_tensor).shape == (2, 5, 6, 4, 4)
 
     # Check if the masks are shifted by `offset`.
     input_tensor = torch.randint(8000, (30,), dtype=torch.long)
     assert layer(input_tensor, offset=5).shape == (30, 35)
 
     input_tensor = torch.randint(8000, (16, 30,), dtype=torch.long)
-    assert layer(input_tensor, offset=7).shape == (1, 30, 37)
+    assert layer(input_tensor, offset=7).shape == (16, 30, 37)
 
     input_tensor = torch.randint(8000, (2, 5, 6, 4), dtype=torch.long)
-    assert layer(input_tensor, offset=2).shape == (1, 1, 1, 4, 6)
+    assert layer(input_tensor, offset=2).shape == (2, 5, 6, 4, 6)
 
 
 def test_invariance_of_future_masking_layer():
