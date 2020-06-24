@@ -69,14 +69,9 @@ class Trainer(object):
 
     def evaluate(self, batch: Optional[int] = None):
         with torch.no_grad():
-            # Prepare evaluation.
-            self.generator.eval()
-            self.discriminator.eval()
+            self.model.eval()
 
-            # Fetch evaluation data.
             data = self.eval_loader.fetch(batch, device='cuda')
-
-            # Calculate loss.
             loss = self.eval_objective(data['input'], data['output'])
 
         # Record metrics for evaluation.
