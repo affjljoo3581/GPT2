@@ -30,7 +30,7 @@ class Vocabulary(object):
         return token in self.words
 
     def __len__(self) -> int:
-        return len(self.words)
+        return (len(self.words) + 7) // 8 * 8
 
     @property
     def special_tokens(self) -> int:
