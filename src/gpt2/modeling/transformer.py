@@ -46,8 +46,8 @@ class TransformerLayer(nn.Module):
         a = self.ln_attn(x)
         a, past = self.attn(a, a, a, past, mask)
 
-        x += a
-        x += self.ff(self.ln_ff(x))
+        x = x + a
+        x = x + self.ff(self.ln_ff(x))
 
         return x, past
 
