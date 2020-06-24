@@ -79,7 +79,7 @@ def _train_gpt2_model(args: argparse.Namespace):
 
     # Create recorder and trainer.
     recorder = Recorder()
-    trainer = Trainer(train_loader, eval_loader, model,
+    trainer = Trainer(model, train_loader, eval_loader,
                       lm_objective, lm_objective, optimizer, scheduler,
                       recorder, use_amp=args.use_amp)
 
