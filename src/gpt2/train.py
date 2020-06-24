@@ -192,7 +192,7 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         type=int,
                         help='number of training iterations')
     parser.add_argument('--warmup_iters',
-                        default=10000,
+                        default=0,
                         type=int,
                         help='iterations to warm up learning rate')
     parser.add_argument('--eval_iters',
