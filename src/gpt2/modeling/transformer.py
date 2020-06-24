@@ -27,7 +27,11 @@ class TransformerLayer(nn.Module):
     output 2 (*)    float           (..., past_len + seq_len, dims)
     ===========================================================================
     """
-    def __init__(self, heads: int, dims: int, rate: int, dropout: float = 0.1):
+    def __init__(self,
+                 heads: int,
+                 dims: int,
+                 rate: int,
+                 dropout: float = 0.1):
         super().__init__()
         self.attn = AttentionLayer(heads, dims, dropout)
         self.ff = PositionwiseFeedForward(dims, rate, dropout)
@@ -38,10 +42,12 @@ class TransformerLayer(nn.Module):
                 x: torch.Tensor,
                 past: Optional[Tuple[torch.Tensor]] = None,
                 mask: Optional[torch.Tensor] = None) -> torch.Tensor:
-        a, past = self.attn(x, x, x, past, mask)
-        x = self.ln_attn(x + a)
+        # Layer normalizations are performed before the layers respectively.
+        a = self.ln_attn(x)
+        a, past = self.attn(a, a, a, past, mask)
 
-        x = self.ln_ff(x + self.ff(x))
+        x += a
+        x += self.ff(self.ln_ff(x))
 
         return x, past
 
@@ -79,6 +85,7 @@ class Transformer(nn.Module):
         self.transformers = nn.ModuleList([
             TransformerLayer(heads, dims, rate, dropout)
             for _ in range(layers)])
+        self.ln_head = LayerNorm(dims)
 
     def forward(self,
                 x: torch.Tensor,
@@ -103,6 +110,7 @@ class Transformer(nn.Module):
             present.append(p)
 
         # Project representations to vocabulary space.
+        x = self.ln_head(x)
         x = self.token_embedding(x, transposed=True)
 
         return x, present
