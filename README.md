@@ -68,3 +68,5 @@ Moreover, there is a module to visualize training metrics.
     $ python -m visualize --figure figure.png --checkpoint ckpt
 
 The example figure is as bellow:
+
+![figure](./example-figure.png)
