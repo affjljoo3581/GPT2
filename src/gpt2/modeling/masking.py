@@ -8,7 +8,7 @@ class PadMasking(nn.Module):
     ===========================================================================
     input           long            (..., seq_len)
     ---------------------------------------------------------------------------
-    output          float           (..., 1, seq_len + offset)
+    output          float           (..., seq_len, seq_len + offset)
     ===========================================================================
     """
     def __init__(self, pad_idx: int):
@@ -19,7 +19,10 @@ class PadMasking(nn.Module):
         is_pad = (x == self.pad_idx).unsqueeze(-2)
         shifted = torch.zeros(x.size()[:-1] + (1, offset,),
                               dtype=torch.bool, device=x.device)
-        return torch.cat((shifted, is_pad), dim=-1)
+        mask = torch.cat((shifted, is_pad), dim=-1)
+
+        # Expand the tensor.
+        return mask.expand(x.shape + mask.shape[-1:])
 
 
 class FutureMasking(nn.Module):
@@ -28,7 +31,7 @@ class FutureMasking(nn.Module):
     ===========================================================================
     input           long            (..., seq_len)
     ---------------------------------------------------------------------------
-    output          float           (...1, seq_len, seq_len + offset)
+    output          float           (..., seq_len, seq_len + offset)
     ===========================================================================
     """
     def forward(self, x: torch.Tensor, offset: int = 0) -> torch.Tensor:
@@ -38,4 +41,7 @@ class FutureMasking(nn.Module):
         future = torch.ones((seq_len, seq_len + offset),
                             dtype=torch.bool, device=x.device)
         future = future.triu(offset + 1)
-        return future.view((1,) * (x.ndim - 1) + future.size())
+        mask = future.view((1,) * (x.ndim - 1) + future.size())
+
+        # Expand the tensor.
+        return mask.expand(x.shape + mask.shape[-1:])
