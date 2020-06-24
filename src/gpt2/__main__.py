@@ -1,5 +1,5 @@
 import argparse
-from . import train
+from . import train, generate, visualize
 
 # Ignore warnings.
 import warnings
@@ -14,6 +14,12 @@ if __name__ == '__main__':
 
     # Add `train` keyword to the parser.
     train.add_subparser(subparsers)
+
+    # Add `generate` keyword to the parser.
+    generate.add_subparser(subparsers)
+
+    # Add `visualize` keyword to the parser.
+    visualize.add_subparser(subparsers)
 
     # Parse passed arguments and call corresponding function.
     args = parser.parse_args()
