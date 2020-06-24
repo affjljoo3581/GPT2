@@ -1,6 +1,6 @@
 import torch
 from .vocabulary import Vocabulary
-from typing import Optional, Union, List, Dict
+from typing import Optional, Union, List, Dict, Any
 
 
 class DataLoader(object):
@@ -32,7 +32,8 @@ class DataLoader(object):
             return {'input': indices[:-1], 'output': indices[1:]}
 
     def fetch(self,
-              batch: Optional[int] = None
+              batch: Optional[int] = None,
+              device: Optional[Union[str, torch.device]] = None
               ) -> Union[Dict[str, torch.Tensor],
                          List[Dict[str, torch.Tensor]]]:
         if batch is None:
@@ -42,10 +43,11 @@ class DataLoader(object):
             data = {k: [d[k] for d in data] for k in data[0]}
 
         # Cast each sequence to tensor.
-        return {k: torch.tensor(v, dtype=torch.long) for k, v in data.items()}
+        return {k: torch.tensor(v, dtype=torch.long, device=device)
+                for k, v in data.items()}
 
-    def seek(self, offset: int):
-        self.corpus_fp.seek(offset)
+    def load_state_dict(self, state_dict: Dict[str, Any]):
+        self.corpus_fp.seek(state_dict['offset'])
 
-    def tell(self) -> int:
-        return self.corpus_fp.tell()
+    def state_dict(self) -> Dict[str, Any]:
+        return {'offset': self.corpus_fp.tell()}
