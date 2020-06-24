@@ -4,6 +4,7 @@ import torch.nn as nn
 
 class LMObjective(nn.Module):
     def __init__(self, model: nn.Module, pad_idx: int):
+        super().__init__()
         self.model = model
         self.criterion = nn.CrossEntropyLoss(ignore_index=pad_idx,
                                              reduction='mean')
@@ -11,4 +12,4 @@ class LMObjective(nn.Module):
     def forward(self, inputs: torch.Tensor, outputs: torch.Tensor
                 ) -> torch.Tensor:
         logits, _ = self.model(inputs, None)
-        return self.criterion(logits, outputs)
+        return self.criterion(logits.transpose(1, 2), outputs)
