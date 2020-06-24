@@ -22,12 +22,16 @@ def _create_linear_decay_scheduler(optimizer: optim.Optimizer,
                                    iterations: int
                                    ) -> optim.lr_scheduler._LRScheduler:
     def lr_schedule(iters):
-        # Learning rate would be increased in warmup phase, and slowly decayed
-        # to zero in training phase.
-        warmup_rate = iters / warmup_iters
+        # Learning rate would be decayed to zero in training phase.
         decaying_rate = 1 - ((iters - warmup_iters)
                              / (iterations - warmup_iters))
-        return min(warmup_rate, decaying_rate)
+
+        # Use learning rate warmup.
+        if warmup_iters > 0:
+            warmup_rate = iters / warmup_iters
+            return min(warmup_rate, decaying_rate)
+
+        return decaying_rate
 
     return optim.lr_scheduler.LambdaLR(optimizer, lr_schedule)
 
