@@ -37,7 +37,7 @@ class DataLoader(object):
             return {'input': indices[:-1], 'output': indices[1:]}
 
     def _squeeze(self, sequences: List[List[int]]) -> List[List[int]]:
-        max_len = max((s + [self.vocab_pad_idx]).index(self.vocab.pad_idx)
+        max_len = max((s + [self.vocab.pad_idx]).index(self.vocab.pad_idx)
                       for s in sequences)
         return [s[:max_len] for s in sequences]
 
