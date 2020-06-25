@@ -4,10 +4,15 @@ from typing import Optional, Union, List, Dict, Any
 
 
 class DataLoader(object):
-    def __init__(self, vocab: Vocabulary, corpus: str, seq_len: int):
+    def __init__(self,
+                 vocab: Vocabulary,
+                 corpus: str,
+                 seq_len: int,
+                 squeeze: bool = False):
         self.vocab = vocab
         self.corpus_fp = open(corpus, 'r', encoding='utf-8')
         self.seq_len = seq_len
+        self.squeeze = squeeze
 
     def close(self):
         self.corpus_fp.close()
@@ -31,6 +36,10 @@ class DataLoader(object):
 
             return {'input': indices[:-1], 'output': indices[1:]}
 
+    def _squeeze(self, sequences: List[List[int]]) -> List[List[int]]:
+        max_len = max(s.index(self.pad_idx) for s in sequences)
+        return [s[:max_len] for s in sequences]
+
     def fetch(self,
               batch: Optional[int] = None,
               device: Optional[Union[str, torch.device]] = None
@@ -41,6 +50,10 @@ class DataLoader(object):
         else:
             data = [self._fetch_one() for _ in range(batch)]
             data = {k: [d[k] for d in data] for k in data[0]}
+
+            if self.squeeze:
+                # Squeeze the sequences to reduce lengths.
+                data = {k: self._squeeze(v) for k, v in data.items()}
 
         # Cast each sequence to tensor.
         return {k: torch.tensor(v, dtype=torch.long, device=device)
