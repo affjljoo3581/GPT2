@@ -36,10 +36,11 @@ class DataLoader(object):
 
             return {'input': indices[:-1], 'output': indices[1:]}
 
-    def _squeeze(self, sequences: List[List[int]]) -> List[List[int]]:
+    def _squeeze(self, data: Dict[str, List[List[int]]]
+                 ) -> Dict[str, List[List[int]]]:
         max_len = max((s + [self.vocab.pad_idx]).index(self.vocab.pad_idx)
-                      for s in sequences)
-        return [s[:max_len] for s in sequences]
+                      for v in data.values() for s in v)
+        return {k: [s[:max_len] for s in v] for k, v in data.items()}
 
     def fetch(self,
               batch: Optional[int] = None,
@@ -52,9 +53,9 @@ class DataLoader(object):
             data = [self._fetch_one() for _ in range(batch)]
             data = {k: [d[k] for d in data] for k in data[0]}
 
+            # Squeeze the sequences to reduce lengths.
             if self.squeeze:
-                # Squeeze the sequences to reduce lengths.
-                data = {k: self._squeeze(v) for k, v in data.items()}
+                data = self._squeeze(data)
 
         # Cast each sequence to tensor.
         return {k: torch.tensor(v, dtype=torch.long, device=device)
