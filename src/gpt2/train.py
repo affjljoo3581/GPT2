@@ -19,12 +19,14 @@ except ModuleNotFoundError:
 
 def _create_linear_decay_scheduler(optimizer: optim.Optimizer,
                                    warmup_iters: int,
-                                   iterations: int
+                                   iterations: int,
+                                   decay_ratio: float = 0,
                                    ) -> optim.lr_scheduler._LRScheduler:
     def lr_schedule(iters):
         # Learning rate would be decayed to zero in training phase.
         decaying_rate = 1 - ((iters - warmup_iters)
                              / (iterations - warmup_iters))
+        decaying_rate = (1 - decay_ratio) * decaying_rate + decay_ratio
 
         # Use learning rate warmup.
         if warmup_iters > 0:
@@ -79,7 +81,8 @@ def _train_gpt2_model(args: argparse.Namespace):
                      weight_decay=args.wd_rate)
     scheduler = _create_linear_decay_scheduler(optimizer,
                                                warmup_iters=args.warmup_iters,
-                                               iterations=args.iterations)
+                                               iterations=args.iterations,
+                                               decay_ratio=args.decay_ratio)
 
     # Create recorder and trainer.
     recorder = Recorder()
@@ -183,6 +186,10 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         default=1e-4,
                         type=float,
                         help='maximum learning rate')
+    parser.add_argument('--decay_ratio',
+                        default=0,
+                        type=float,
+                        help='learning rate decay ratio')
     parser.add_argument('--wd_rate',
                         default=1e-2,
                         type=float,
