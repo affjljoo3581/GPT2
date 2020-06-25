@@ -60,12 +60,10 @@ def _train_gpt2_model(args: argparse.Namespace):
                        pad_token=args.pad_token)
     train_loader = DataLoader(vocab,
                               corpus=args.train_corpus,
-                              seq_len=args.seq_len,
-                              squeeze=True)
+                              seq_len=args.seq_len)
     eval_loader = DataLoader(vocab,
                              corpus=args.eval_corpus,
-                             seq_len=args.seq_len,
-                             squeeze=True)
+                             seq_len=args.seq_len)
 
     # Create GPT-2 model.
     model = Transformer(layers=args.layers, pad_idx=vocab.pad_idx,
