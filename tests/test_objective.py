@@ -10,9 +10,9 @@ class _dummy_model(nn.Module):
         return x, x
 
 
-def test_the_shape_from_lm_objective():
+def test_lm_objective_throws_errors():
     # Create dummy LMObjective.
     objective = LMObjective(_dummy_model(), pad_idx=0)
 
-    # Test the shape of loss tensor from objective.
+    # Test if the objective throws any error.
     objective(torch.zeros((10, 7, 100)), torch.randint(0, 100, (10, 7)))
