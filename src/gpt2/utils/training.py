@@ -77,12 +77,6 @@ class Trainer(object):
         # Record metrics for evaluation.
         self.recorder.add_eval_metrics(loss=loss.item())
 
-    def model_params(self):
-        if self.use_amp:
-            return amp.master_params(self.optimizer)
-        else:
-            return self.model.parameters()
-
     def state_dict(self) -> Dict[str, Any]:
         # Collect all `state_dict`s from members.
         state_dict = {}
