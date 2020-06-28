@@ -38,6 +38,24 @@ def test_position_invariance_of_positional_embedding():
                 == layer(input_tensor_2, offset=i)).all()
 
 
+def test_overwritting_positional_weights_from_different_layer():
+    # Create two layers which have different sequence length.
+    layer_32 = PositionalEmbedding(num_embeddings=32, embedding_dim=16)
+    layer_64 = PositionalEmbedding(num_embeddings=64, embedding_dim=16)
+
+    # Load larger embedding weights to smaller ones.
+    layer_32.load_state_dict(layer_64.state_dict())
+    assert (layer_32.weight == layer_64.weight[:32, :]).all()
+
+    # Reset embedding matrices.
+    layer_32.reset_parameters()
+    layer_64.reset_parameters()
+
+    # Load smaller embedding weights to larger ones.
+    layer_64.load_state_dict(layer_32.state_dict())
+    assert (layer_32.weight == layer_64.weight[:32, :]).all()
+
+
 def test_the_shape_from_token_embedding():
     # Create token embedding layer.
     layer = TokenEmbedding(num_embeddings=80, embedding_dim=32)
