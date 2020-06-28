@@ -17,27 +17,6 @@ except ModuleNotFoundError:
     from torch.optim import AdamW as Adam
 
 
-def _create_linear_decay_scheduler(optimizer: optim.Optimizer,
-                                   warmup_iters: int,
-                                   iterations: int,
-                                   decay_ratio: float = 0,
-                                   ) -> optim.lr_scheduler._LRScheduler:
-    def lr_schedule(iters):
-        # Learning rate would be decayed to zero in training phase.
-        decaying_rate = 1 - ((iters - warmup_iters)
-                             / (iterations - warmup_iters))
-        decaying_rate = (1 - decay_ratio) * decaying_rate + decay_ratio
-
-        # Use learning rate warmup.
-        if warmup_iters > 0:
-            warmup_rate = iters / warmup_iters
-            return min(warmup_rate, decaying_rate)
-
-        return decaying_rate
-
-    return optim.lr_scheduler.LambdaLR(optimizer, lr_schedule)
-
-
 def _create_tqdm_progress(iterations: int, start_iters: int = 0) -> tqdm.tqdm:
     if start_iters == 0:
         return tqdm.trange(iterations, desc='Train GPT-2')
@@ -79,10 +58,8 @@ def _train_gpt2_model(args: argparse.Namespace):
     optimizer = Adam(model.parameters(),
                      lr=args.base_lr,
                      weight_decay=args.wd_rate)
-    scheduler = _create_linear_decay_scheduler(optimizer,
-                                               warmup_iters=args.warmup_iters,
-                                               iterations=args.iterations,
-                                               decay_ratio=args.decay_ratio)
+    scheduler = optim.lr_scheduler.LambdaLR(
+        optimizer, lambda iters: 1 - iters / args.iterations)
 
     # Create recorder and trainer.
     recorder = Recorder()
@@ -90,13 +67,18 @@ def _train_gpt2_model(args: argparse.Namespace):
                       lm_objective, lm_objective, optimizer, scheduler,
                       recorder, use_amp=args.use_amp)
 
-    # Restore training state from last checkpoint.
+    # Restore training state from the given checkpoint.
     start_iters = 0
     if args.restore is not None:
         ckpt = torch.load(args.restore)
 
-        start_iters = ckpt['iters'] + 1
-        trainer.load_state_dict(ckpt['trainer'])
+        if 'trainer' in ckpt:
+            # Restore the training states from the last-saved checkpoint.
+            start_iters = ckpt['iters'] + 1
+            trainer.load_state_dict(ckpt['trainer'])
+        elif 'model' in ckpt:
+            # Restore from the trained model.
+            model.load_state_dict(ckpt['model'])
 
         # Release checkpoint resources to prevent CUDA OOM.
         del ckpt
@@ -146,7 +128,7 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         help='vocabulary file path')
     parser.add_argument('--restore',
                         default=None,
-                        help='restore from the given checkpoint file path')
+                        help='restore from the given checkpoint file')
     parser.add_argument('--checkpoint',
                         default='ckpt',
                         help='checkpoint file path')
@@ -161,7 +143,7 @@ def add_subparser(subparsers: argparse._SubParsersAction):
     parser.add_argument('--seq_len',
                         default=64,
                         type=int,
-                        help='maximum length of each sequence')
+                        help='maximum length of sequences')
     parser.add_argument('--layers',
                         default=12,
                         type=int,
@@ -186,10 +168,6 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         default=1e-4,
                         type=float,
                         help='maximum learning rate')
-    parser.add_argument('--decay_ratio',
-                        default=0,
-                        type=float,
-                        help='learning rate decay ratio')
     parser.add_argument('--wd_rate',
                         default=1e-2,
                         type=float,
@@ -198,10 +176,6 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         default=100000,
                         type=int,
                         help='number of training iterations')
-    parser.add_argument('--warmup_iters',
-                        default=0,
-                        type=int,
-                        help='iterations to warm up learning rate')
     parser.add_argument('--eval_iters',
                         default=500,
                         type=int,
