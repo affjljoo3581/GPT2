@@ -14,6 +14,18 @@ class PositionalEmbedding(nn.Embedding):
     def reset_parameters(self):
         nn.init.normal_(self.weight, std=0.02)
 
+    def load_state_dict(self, state_dict):
+        weight = state_dict['weight']
+
+        # Slice or pad the given embedding weights.
+        if weight.size(0) < self.num_embeddings:
+            weight = torch.cat((weight, self.weight[weight.size(0):]), dim=0)
+        elif weight.size(0) > self.num_embeddings:
+            weight = weight[:self.num_embeddings]
+
+        state_dict['weight'] = weight
+        super().load_state_dict(state_dict)
+
     def forward(self, x: torch.Tensor, offset: int = 0) -> torch.Tensor:
         # Create position indices tensor.
         position = torch.arange(offset, offset + x.size(-1),
