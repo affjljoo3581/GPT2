@@ -7,7 +7,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: affjljoo3581/pytorch
+    container: pytorch/pytorch
 
     steps:
     - uses: actions/checkout@v2
