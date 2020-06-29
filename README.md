@@ -1,5 +1,7 @@
 # GPT-2 PyTorch Implementation
 
+![build](https://github.com/affjljoo3581/GPT2/workflows/build/badge.svg)
+[![codecov](https://codecov.io/gh/affjljoo3581/GPT2/branch/master/graph/badge.svg)](https://codecov.io/gh/affjljoo3581/GPT2)
 [![CodeFactor](https://www.codefactor.io/repository/github/affjljoo3581/gpt2/badge)](https://www.codefactor.io/repository/github/affjljoo3581/gpt2)
 
 [Language Models are Unsupervised Multitask Learners](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf)
