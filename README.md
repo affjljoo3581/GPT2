@@ -54,7 +54,7 @@ To resume training from last checkpoint file, use `--restore [last checkpoint fi
 ## Generate sentences!
 After training GPT-2, you can generate sentences with your trained model in interactive mode.
 
-    $ python -m gpt2 generate --vocab            build/vocab.txt
+    $ python -m gpt2 generate --vocab            build/vocab.txt \
                               --checkpoint       ckpt \
                               --seq_len          64 \
                               --layers           12 \
