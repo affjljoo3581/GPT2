@@ -27,11 +27,11 @@ class BaseAttention(nn.Module):
                 mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         # Calculate attention weight logits.
         x = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(k.size(-1))
+        if mask is not None:
+            x += mask.type_as(x) * x.new_tensor(-1e5)
 
         # Apply softmax and dropout layer.
         x = self.dropout(x.softmax(-1))
-        if mask is not None:
-            x *= torch.bitwise_not(mask)
 
         # Return weighted sum of values.
         return torch.matmul(x, v)
