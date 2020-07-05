@@ -88,14 +88,11 @@ def add_subparser(subparsers: argparse._SubParsersAction):
     parser = subparsers.add_parser(
         'visualize', help='visualize metrics for training and evaluation')
 
-    parser.add_argument('--figure',
-                        default='figure.png',
+    parser.add_argument('--figure', default='figure.png',
                         help='figure image file path to save plot')
-    parser.add_argument('--checkpoint',
-                        required=True,
+    parser.add_argument('--checkpoint', required=True,
                         help='checkpoint file path')
-    parser.add_argument('--interactive',
-                        action='store_true',
+    parser.add_argument('--interactive', action='store_true',
                         help='show interactive plot window')
 
     parser.set_defaults(func=_visualize_metrics)

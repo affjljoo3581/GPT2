@@ -117,87 +117,51 @@ def _train_gpt2_model(args: argparse.Namespace):
 def add_subparser(subparsers: argparse._SubParsersAction):
     parser = subparsers.add_parser('train', help='train GPT-2 model.')
 
-    parser.add_argument('--train_corpus',
-                        required=True,
+    parser.add_argument('--train_corpus', required=True,
                         help='corpus file for training')
-    parser.add_argument('--eval_corpus',
-                        required=True,
+    parser.add_argument('--eval_corpus', required=True,
                         help='corpus file for evaluation')
-    parser.add_argument('--vocab',
-                        required=True,
+    parser.add_argument('--vocab', required=True,
                         help='vocabulary file path')
-    parser.add_argument('--restore',
-                        default=None,
+    parser.add_argument('--restore', default=None,
                         help='restore from the given checkpoint file')
-    parser.add_argument('--checkpoint',
-                        default='ckpt',
+    parser.add_argument('--checkpoint', default='ckpt',
                         help='checkpoint file path')
-    parser.add_argument('--batch_train',
-                        default=64,
-                        type=int,
+    parser.add_argument('--batch_train', default=64, type=int,
                         help='batch size for training')
-    parser.add_argument('--batch_eval',
-                        default=64,
-                        type=int,
+    parser.add_argument('--batch_eval', default=64, type=int,
                         help='batch size for evaluation')
-    parser.add_argument('--seq_len',
-                        default=64,
-                        type=int,
+    parser.add_argument('--seq_len', default=64, type=int,
                         help='maximum length of sequences')
-    parser.add_argument('--layers',
-                        default=12,
-                        type=int,
+    parser.add_argument('--layers', default=12, type=int,
                         help='number of decoder layers')
-    parser.add_argument('--heads',
-                        default=16,
-                        type=int,
+    parser.add_argument('--heads', default=16, type=int,
                         help='number of multi-heads in attention')
-    parser.add_argument('--dims',
-                        default=1024,
-                        type=int,
+    parser.add_argument('--dims', default=1024, type=int,
                         help='dimension of representation in each layer')
-    parser.add_argument('--rate',
-                        default=4,
-                        type=int,
+    parser.add_argument('--rate', default=4, type=int,
                         help='increase rate of dimensionality in bottleneck')
-    parser.add_argument('--dropout',
-                        default=0.1,
-                        type=float,
+    parser.add_argument('--dropout', default=0.1, type=float,
                         help='dropout rate')
-    parser.add_argument('--base_lr',
-                        default=1e-4,
-                        type=float,
+    parser.add_argument('--base_lr', default=1e-4, type=float,
                         help='maximum learning rate')
-    parser.add_argument('--wd_rate',
-                        default=1e-2,
-                        type=float,
+    parser.add_argument('--wd_rate', default=1e-2, type=float,
                         help='weight decay rate')
-    parser.add_argument('--iterations',
-                        default=100000,
-                        type=int,
+    parser.add_argument('--iterations', default=100000, type=int,
                         help='number of training iterations')
-    parser.add_argument('--eval_iters',
-                        default=500,
-                        type=int,
+    parser.add_argument('--eval_iters', default=500, type=int,
                         help='period to evaluate')
-    parser.add_argument('--save_iters',
-                        default=1000,
-                        type=int,
+    parser.add_argument('--save_iters', default=1000, type=int,
                         help='period to save training state')
-    parser.add_argument('--use_amp',
-                        action='store_true',
+    parser.add_argument('--use_amp', action='store_true',
                         help='use automatic mixed-precision in training')
-    parser.add_argument('--unk_token',
-                        default='<unk>',
+    parser.add_argument('--unk_token', default='<unk>',
                         help='unknown token name')
-    parser.add_argument('--bos_token',
-                        default='<s>',
+    parser.add_argument('--bos_token', default='<s>',
                         help='begin-of-sentence token name')
-    parser.add_argument('--eos_token',
-                        default='</s>',
+    parser.add_argument('--eos_token', default='</s>',
                         help='end-of-sentence token name')
-    parser.add_argument('--pad_token',
-                        default='<pad>',
+    parser.add_argument('--pad_token', default='<pad>',
                         help='pad token name')
 
     parser.set_defaults(func=_train_gpt2_model)
