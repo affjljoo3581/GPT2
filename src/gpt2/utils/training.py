@@ -53,13 +53,12 @@ class Trainer(object):
         self.model.train()
         self.optimizer.zero_grad()
 
-        # Fetch training data.
-        data = self.train_loader.fetch(batch, device='cuda')
-
-        # Calculate loss.
+        # Fetch training data and calculate loss.
         if self.gpus is None:
+            data = self.train_loader.fetch(batch, device='cuda')
             loss = self.train_objective(data['input'], data['output'])
         else:
+            data = self.train_loader.fetch(batch, device='cpu')
             loss = parallel.data_parallel(
                 self.train_objective,
                 data['input'],
@@ -88,11 +87,11 @@ class Trainer(object):
         with torch.no_grad():
             self.model.eval()
 
-            data = self.eval_loader.fetch(batch, device='cuda')
-
             if self.gpus is None:
+                data = self.eval_loader.fetch(batch, device='cuda')
                 loss = self.eval_objective(data['input'], data['output'])
             else:
+                data = self.eval_loader.fetch(batch, device='cpu')
                 loss = parallel.data_parallel(
                     self.eval_objective,
                     data['input'],
