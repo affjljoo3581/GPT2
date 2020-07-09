@@ -45,6 +45,7 @@ class Trainer(object):
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.recorder = recorder
+        self.gpus = gpus
         self.use_amp = use_amp
 
     def train(self, batch: Optional[int] = None):
