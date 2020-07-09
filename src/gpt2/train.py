@@ -52,7 +52,7 @@ def _train_gpt2_model(args: argparse.Namespace):
     model.cuda()
 
     # Train GPT-2 through language model objective.
-    lm_objective = LMObjective(model, pad_idx=vocab.pad_idx)
+    lm_objective = LMObjective(pad_idx=vocab.pad_idx)
 
     # Use Adam optimizer and linear learning rate decaying with warmup.
     optimizer = Adam(model.parameters(),
@@ -65,7 +65,7 @@ def _train_gpt2_model(args: argparse.Namespace):
     recorder = Recorder()
     trainer = Trainer(model, train_loader, eval_loader,
                       lm_objective, lm_objective, optimizer, scheduler,
-                      recorder, use_amp=args.use_amp)
+                      recorder, gpus=args.gpus, use_amp=args.use_amp)
 
     # Restore training state from the given checkpoint.
     start_iters = 0
@@ -153,6 +153,8 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         help='period to evaluate')
     parser.add_argument('--save_iters', default=1000, type=int,
                         help='period to save training state')
+    parser.add_argument('--gpus', default=None, type=int, nargs='*',
+                        help='gpu ids for training')
     parser.add_argument('--use_amp', action='store_true',
                         help='use automatic mixed-precision in training')
     parser.add_argument('--unk_token', default='<unk>',
