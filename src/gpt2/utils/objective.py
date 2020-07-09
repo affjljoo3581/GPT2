@@ -15,5 +15,7 @@ class LMObjective(Objective):
 
     def forward(self, inputs: torch.Tensor, outputs: torch.Tensor
                 ) -> torch.Tensor:
+        print(inputs)
+        print(outputs)
         logits, _ = self.model(inputs, None)
         return self.criterion(logits.transpose(1, 2), outputs)
