@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.parallel as parallel
+from torch.nn.parallel import DataParallel
 from .recording import Recorder
 from .objective import Objective
 from ..data.serving import DataLoader
@@ -37,6 +37,9 @@ class Trainer(object):
         train_objective.set_model(model)
         eval_objective.set_model(model)
 
+        train_objective = DataParallel(train_objective, gpus)
+        eval_objective = DataParallel(eval_objective, gpus)
+
         self.train_loader = train_loader
         self.eval_loader = eval_loader
         self.model = model
@@ -53,19 +56,11 @@ class Trainer(object):
         self.model.train()
         self.optimizer.zero_grad()
 
-        # Fetch training data and calculate loss.
-        if self.gpus is None:
-            data = self.train_loader.fetch(batch, device='cuda')
-            loss = self.train_objective(data['input'], data['output'])
-        else:
-            data = self.train_loader.fetch(batch, device='cpu')
-            loss = parallel.data_parallel(
-                self.train_objective,
-                data['input'],
-                device_ids=self.gpus,
-                output_device=0,
-                dim=0,
-                module_kwargs={'outputs': data['output']})
+        # Fetch training data.
+        data = self.train_loader.fetch(batch, device='cuda')
+
+        # Calculate loss.
+        loss = self.train_objective(data['input'], data['output'])
 
         # Calculate gradients.
         if self.use_amp:
@@ -87,18 +82,8 @@ class Trainer(object):
         with torch.no_grad():
             self.model.eval()
 
-            if self.gpus is None:
-                data = self.eval_loader.fetch(batch, device='cuda')
-                loss = self.eval_objective(data['input'], data['output'])
-            else:
-                data = self.eval_loader.fetch(batch, device='cpu')
-                loss = parallel.data_parallel(
-                    self.eval_objective,
-                    data['input'],
-                    device_ids=self.gpus,
-                    output_device=0,
-                    dim=0,
-                    module_kwargs={'outputs': data['output']})
+            data = self.eval_loader.fetch(batch, device='cuda')
+            loss = self.eval_objective(data['input'], data['output'])
 
         # Record metrics for evaluation.
         self.recorder.add_eval_metrics(loss=loss.item())
