@@ -28,7 +28,7 @@ def _patch_forward(model):
         else:
             return tensor.to(torch.float32)
 
-    def _forward(*args, old_fwd=model.forward):
+    def _forward(*args, old_fwd=model.forward, **kwargs):
         amp._initialize.applier(
             old_fwd(*amp._initialize.applier(args, _input_caster),
                     **amp._initialize.applier(kwargs, _input_caster)),
