@@ -2,14 +2,10 @@ import torch
 import torch.nn as nn
 
 
-class Objective(nn.Module):
-    def set_model(self, model: nn.Module):
-        self.model = model
-
-
-class LMObjective(Objective):
+class LMObjective(nn.Module):
     def __init__(self, pad_idx: int):
         super().__init__()
+        self.model = None
         self.criterion = nn.CrossEntropyLoss(ignore_index=pad_idx,
                                              reduction='mean')
 
