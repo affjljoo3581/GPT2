@@ -1,9 +1,11 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch.nn.parallel as parallel
 from .recording import Recorder
+from .objective import Objective
 from ..data.serving import DataLoader
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 # Try to import `apex` library for mixed-precision training. Note that the
 # library should be installed when ``use_amp=True``.`
@@ -18,17 +20,22 @@ class Trainer(object):
                  model: nn.Module,
                  train_loader: DataLoader,
                  eval_loader: DataLoader,
-                 train_objective: nn.Module,
-                 eval_objective: nn.Module,
+                 train_objective: Objective,
+                 eval_objective: Objective,
                  optimizer: optim.Optimizer,
                  scheduler: optim.lr_scheduler._LRScheduler,
                  recorder: Recorder,
+                 gpus: Optional[List[int]] = None,
                  use_amp: bool = False):
         # Convert model and optimizer for mixed-precision training if
         # ``use_amp=True``.
         if use_amp:
             model, optimizer = amp.initialize(
                 model, optimizer, opt_level='O2', verbosity=0)
+
+        # Set model to the objectives after converting.
+        train_objective.set_model(model)
+        eval_objective.set_model(model)
 
         self.train_loader = train_loader
         self.eval_loader = eval_loader
@@ -49,7 +56,16 @@ class Trainer(object):
         data = self.train_loader.fetch(batch, device='cuda')
 
         # Calculate loss.
-        loss = self.train_objective(data['input'], data['output'])
+        if self.gpus is None:
+            loss = self.train_objective(data['input'], data['output'])
+        else:
+            loss = parallel.data_parallel(
+                self.train_objective,
+                data['input'],
+                device_ids=self.gpus,
+                output_device=0,
+                dim=0,
+                module_kwargs={'outputs': data['output']})
 
         # Calculate gradients.
         if self.use_amp:
@@ -72,7 +88,17 @@ class Trainer(object):
             self.model.eval()
 
             data = self.eval_loader.fetch(batch, device='cuda')
-            loss = self.eval_objective(data['input'], data['output'])
+
+            if self.gpus is None:
+                loss = self.eval_objective(data['input'], data['output'])
+            else:
+                loss = parallel.data_parallel(
+                    self.eval_objective,
+                    data['input'],
+                    device_ids=self.gpus,
+                    output_device=0,
+                    dim=0,
+                    module_kwargs={'outputs': data['output']})
 
         # Record metrics for evaluation.
         self.recorder.add_eval_metrics(loss=loss.item())
