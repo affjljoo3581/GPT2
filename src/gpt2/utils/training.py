@@ -15,6 +15,28 @@ except ModuleNotFoundError:
     pass
 
 
+def _patch_forward(model):
+    def _input_caster(tensor):
+        return tensor.to(
+            amp._amp_state.opt_properties.options['cast_model_type'])
+
+    def _output_caster(tensor):
+        if (amp._amp_state.opt_properties
+               .options.get('cast_model_outputs') is not None):
+            return tensor.to(amp._amp_state.opt_properties
+                                .options['cast_model_outputs'])
+        else:
+            return tensor.to(torch.float32)
+
+    def _forward(*args, old_fwd=model.forward):
+        amp._initialize.applier(
+            old_fwd(*amp._initialize.applier(args, _input_caster),
+                    **amp._initialize.applier(kwargs, _input_caster)),
+            _output_caster)
+
+    model.forward = forward
+
+
 class Trainer(object):
     def __init__(self,
                  model: nn.Module,
@@ -34,11 +56,16 @@ class Trainer(object):
                 model, optimizer, opt_level='O2', verbosity=0)
 
         # Set model to the objectives after converting.
-        train_objective.set_model(model)
-        eval_objective.set_model(model)
+        train_objective.model = model
+        eval_objective.model = model
 
-        train_objective = DataParallel(train_objective, gpus)
-        eval_objective = DataParallel(eval_objective, gpus)
+        if gpus is not None:
+            train_objective = DataParallel(train_objective, gpus)
+            eval_objective = DataParallel(eval_objective, gpus)
+
+            if use_amp:
+                _patch_forward(train_objective.model)
+                _patch_forward(eval_objective.model)
 
         self.train_loader = train_loader
         self.eval_loader = eval_loader
