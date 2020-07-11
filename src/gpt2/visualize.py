@@ -1,83 +1,64 @@
 import torch
 import argparse
 import matplotlib.pyplot as plt
-from typing import List, Dict, Any
-
-
-def _extract_dict_from_list(list_dict: List[Dict[str, Any]]
-                            ) -> Dict[str, List[Any]]:
-    dict_list = {k: [] for k in list_dict[0]}
-
-    for item in list_dict:
-        for k, v in item.items():
-            dict_list[k].append(v)
-
-    return dict_list
 
 
 def _visualize_metrics(args: argparse.Namespace):
     ckpt = torch.load(args.checkpoint)
-
-    # Extract metrics from checkpoint.
-    steps = ckpt['metrics']['steps']
-    train_metrics = _extract_dict_from_list(ckpt['metrics']['train'])
-    eval_metrics = _extract_dict_from_list(ckpt['metrics']['eval'])
+    eval_steps, eval_metrics = zip(*ckpt['metrics']['eval/loss'])
+    train_steps, train_metrics = zip(*ckpt['metrics']['train/loss'])
 
     plt.figure(figsize=(12, 8))
 
-    # Plot loss for training and evaluation.
     plt.subplot(221)
-    plt.plot(steps, eval_metrics['loss'], label='evaluation')
-    plt.plot(steps, train_metrics['loss'], label='training')
+    plt.plot(eval_steps, eval_metrics, label='evaluation')
+    plt.plot(train_steps, train_metrics, label='training')
     plt.title('Cross-Entropy Loss')
     plt.xlabel('Iterations')
     plt.ylabel('Loss')
     plt.legend(loc='top right')
 
-    # Plot log-scale loss for training and evaluation.
     plt.subplot(222)
-    plt.plot(steps, eval_metrics['loss'], label='evaluation')
-    plt.plot(steps, train_metrics['loss'], label='training')
+    plt.plot(eval_steps, eval_metrics['loss'], label='evaluation')
+    plt.plot(train_steps, train_metrics['loss'], label='training')
     plt.xscale('log')
     plt.title('Log-Scale Cross-Entropy Loss')
     plt.xlabel('Iterations (Log Scale)')
     plt.ylabel('Loss')
     plt.legend(loc='top right')
 
-    # Plot detail loss for last 90% iterations.
-    target_range = len(steps) * 9 // 10
-    min_loss = min(train_metrics['loss'][-target_range:]
-                   + eval_metrics['loss'][-target_range:])
-    max_loss = max(train_metrics['loss'][-target_range:]
-                   + eval_metrics['loss'][-target_range:])
+    target_range_train = len(train_steps) * 9 // 10
+    target_range_eval = len(eval_steps) * 9 // 10
+    min_loss = min(train_metrics[-target_range_train:]
+                   + eval_metrics[-target_range_eval:])
+    max_loss = max(train_metrics[-target_range_train:]
+                   + eval_metrics[-target_range_eval:])
 
     plt.subplot(223)
-    plt.plot(steps, eval_metrics['loss'], label='evaluation')
-    plt.plot(steps, train_metrics['loss'], label='training')
+    plt.plot(eval_steps, eval_metrics, label='evaluation')
+    plt.plot(train_steps, train_metrics, label='training')
     plt.title('Loss')
     plt.xlabel('Iterations')
     plt.ylabel('Loss')
     plt.legend(loc='top right')
     plt.ylim((min_loss - 0.1, max_loss + 0.1))
 
-    # Plot detail loss for last 30% iterations.
-    target_range = len(steps) * 3 // 10
+    target_range_train = len(train_steps) * 3 // 10
+    target_range_eval = len(eval_steps) * 3 // 10
 
     plt.subplot(224)
-    plt.plot(steps[-target_range:],
-             eval_metrics['loss'][-target_range:],
+    plt.plot(eval_steps[-target_range_eval:],
+             eval_metrics[-target_range_eval:],
              label='evaluation')
-    plt.plot(steps[-target_range:],
-             train_metrics['loss'][-target_range:],
+    plt.plot(train_steps[-target_range_train:],
+             train_metrics[-target_range_train:],
              label='training')
     plt.title('Loss')
     plt.xlabel('Iterations')
     plt.ylabel('Loss')
     plt.legend(loc='top right')
 
-    # Save figure or show plot window.
     plt.tight_layout()
-
     if args.interactive:
         plt.show()
     else:

@@ -1,117 +1,82 @@
-import tqdm
+
 import argparse
-import torch
 import torch.optim as optim
-from .data.serving import DataLoader
-from .data.vocabulary import Vocabulary
+import torch.multiprocessing as mp
+from .utils import amp
+from .utils import fusing
+from .utils import distributing
+from .misc.training import Trainer
+from .misc.objective import LMObjective
+from .misc.progress import ProgressBar
+from .data.vocabulary import Vocab
+from .data.serving import TokenizedCorpusDataset
 from .modeling.transformer import Transformer
-from .utils.objective import LMObjective
-from .utils.recording import Recorder
-from .utils.training import Trainer
-
-# Try to import `apex` library for using fused optimizer. Note that if `apex`
-# is installed, then ``FusedAdam`` would be used automatically.
-try:
-    from apex.optimizers import FusedAdam as Adam
-except ModuleNotFoundError:
-    from torch.optim import AdamW as Adam
 
 
-def _create_tqdm_progress(iterations: int, start_iters: int = 0) -> tqdm.tqdm:
-    if start_iters == 0:
-        return tqdm.trange(iterations, desc='Train GPT-2')
+def _main_worker(rank: int, args: argparse.Namespace):
+    if args.gpus:
+        distributing.initialize(idx=rank, gpus=args.gpus)
 
-    # Create tqdm and update progress.
-    tqdm_iter = tqdm.tqdm(range(start_iters, iterations),
-                          total=iterations,
-                          desc='Train GPT-2')
-    tqdm_iter.update(start_iters)
+    # Prepare datasets, model and its objective.
+    vocab = Vocab(vocab_path=args.vocab)
+    train_dataset = TokenizedCorpusDataset(vocab,
+                                           corpus_path=args.train_corpus,
+                                           seq_len=args.seq_len)
+    eval_dataset = TokenizedCorpusDataset(vocab,
+                                          corpus_path=args.eval_corpus,
+                                          seq_len=args.seq_len)
 
-    return tqdm_iter
-
-
-def _train_gpt2_model(args: argparse.Namespace):
-    # Prepare data loaders for training and evaluation.
-    vocab = Vocabulary(vocab_path=args.vocab,
-                       unk_token=args.unk_token,
-                       bos_token=args.bos_token,
-                       eos_token=args.eos_token,
-                       pad_token=args.pad_token)
-    train_loader = DataLoader(vocab,
-                              corpus=args.train_corpus,
-                              seq_len=args.seq_len)
-    eval_loader = DataLoader(vocab,
-                             corpus=args.eval_corpus,
-                             seq_len=args.seq_len)
-
-    # Create GPT-2 model.
     model = Transformer(layers=args.layers, pad_idx=vocab.pad_idx,
                         words=len(vocab), seq_len=args.seq_len,
                         heads=args.heads, dims=args.dims, rate=args.rate,
-                        dropout=args.dropout, bidirectional=False)
-    model.cuda()
+                        dropout=args.dropout, bidirectional=False).cuda()
+    objective = LMObjective(model, pad_idx=vocab.pad_idx)
 
-    # Train GPT-2 through language model objective.
-    lm_objective = LMObjective(pad_idx=vocab.pad_idx)
-
-    # Use Adam optimizer and linear learning rate decaying with warmup.
-    optimizer = Adam(model.parameters(),
-                     lr=args.base_lr,
-                     weight_decay=args.wd_rate)
+    # Create optimizer, learning rate scheduler and integrated trainer.
+    optimizer = fusing.Adam(
+        model.parameters(), lr=args.base_lr, weight_decay=args.wd_rate)
     scheduler = optim.lr_scheduler.LambdaLR(
-        optimizer, lambda iters: 1 - iters / args.iterations)
+        optimizer, lambda step: 1 - step / args.total_iters)
 
-    # Create recorder and trainer.
-    recorder = Recorder()
-    trainer = Trainer(model, train_loader, eval_loader,
-                      lm_objective, lm_objective, optimizer, scheduler,
-                      recorder, gpus=args.gpus, use_amp=args.use_amp)
+    trainer = Trainer(model, optimizer, scheduler, train_dataset, eval_dataset,
+                      train_objective=objective, eval_objective=objective)
 
-    # Restore training state from the given checkpoint.
-    start_iters = 0
-    if args.restore is not None:
-        ckpt = torch.load(args.restore)
+    # Use automatic mixed-precision.
+    if args.use_amp:
+        amp.apply(trainer)
 
-        if 'trainer' in ckpt:
-            # Restore the training states from the last-saved checkpoint.
-            start_iters = ckpt['iters'] + 1
-            trainer.load_state_dict(ckpt['trainer'])
-        elif 'model' in ckpt:
-            # Restore from the trained model.
-            model.load_state_dict(ckpt['model'])
+    # Use distributed training.
+    if args.gpus:
+        distributing.apply(trainer)
 
-        # Release checkpoint resources to prevent CUDA OOM.
-        del ckpt
-        torch.cuda.empty_cache()
+    # Restore training states from checkpoint.
+    if args.restore:
+        trainer.restore(args.restore)
 
-    # Start training.
-    tqdm_iters = _create_tqdm_progress(iterations=args.iterations,
-                                       start_iters=start_iters)
-    for iters in tqdm_iters:
-        trainer.train(batch=args.batch_train)
+    # Start training the model.
+    progress = ProgressBar(
+        trainer.iters, 10000, desc='Train GPT-2', observe=trainer,
+        fstring='train/loss: {train_loss:.4f}, eval/loss: {eval_loss:.4f}')
 
-        # Show training and evaluation metrics.
-        if (iters + 1) % args.eval_iters == 0:
-            trainer.evaluate(batch=args.batch_eval)
-            recorder.stamp(iters + 1)
+    for trainer.iters in progress:
+        trainer.train(batch=32)
 
-            tqdm_iters.set_postfix_str(recorder.format(
-                'train/loss: {train_loss:.4f}, '
-                'eval/loss: {eval_loss:.4f}'))
+        if (trainer.iters + 1) % 100 == 0:
+            trainer.evaluate(batch=32)
+            trainer.stamp(trainer.iters)
 
-        # Save training state to the checkpoint file.
-        if (iters + 1) % args.save_iters == 0:
-            torch.save({'iters': iters, 'trainer': trainer.state_dict()},
-                       args.checkpoint)
+        if (trainer.iters + 1) % 1000 == 0:
+            trainer.preserve(args.checkpoint)
 
-    # Save GPT-2 model and summarized metrics data.
-    torch.save({'model': model.cpu().state_dict(),
-                'metrics': recorder.summarize()},
-               args.checkpoint)
+    # Save trained model and recorded metrics.
+    trainer.save(args.checkpoint)
 
-    # Dispose all resources.
-    train_loader.close()
-    eval_loader.close()
+
+def _train_gpt2_model(args: argparse.Namespace):
+    if args.gpus:
+        mp.spawn(_main_worker, args=(0, args), nprocs=len(args.gpus))
+    else:
+        _main_worker(0, args)
 
 
 def add_subparser(subparsers: argparse._SubParsersAction):
@@ -157,13 +122,5 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         help='gpu ids for training')
     parser.add_argument('--use_amp', action='store_true',
                         help='use automatic mixed-precision in training')
-    parser.add_argument('--unk_token', default='<unk>',
-                        help='unknown token name')
-    parser.add_argument('--bos_token', default='<s>',
-                        help='begin-of-sentence token name')
-    parser.add_argument('--eos_token', default='</s>',
-                        help='end-of-sentence token name')
-    parser.add_argument('--pad_token', default='<pad>',
-                        help='pad token name')
 
     parser.set_defaults(func=_train_gpt2_model)
