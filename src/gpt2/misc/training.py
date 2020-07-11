@@ -17,7 +17,7 @@ class Trainer(Recordable, Preservable):
                  eval_dataset: Dataset,
                  train_objective: Objective,
                  eval_objective: Objective):
-        super(Recordable, self).__init__()
+        super().__init__()
         self.iters = 0
         self.model = model
         self.optimizer = optimizer
