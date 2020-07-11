@@ -50,6 +50,7 @@ After preparing your datasets, you can train GPT-2 by using as follows:
                            --use_amp
 
 To resume training from last checkpoint file, use `--restore [last checkpoint file]` option.
+If you want to train GPT-2 with multiple GPUs, use `--gpus [1st gpu id] [2nd gpu id] ...` option.
 
 ## Generate sentences!
 After training GPT-2, you can generate sentences with your trained model in interactive mode.
@@ -61,9 +62,9 @@ After training GPT-2, you can generate sentences with your trained model in inte
                               --heads            16 \
                               --dims             1024 \
                               --rate             4 \
-                              --temperature      0.8 \
-                              --samples          20 \
-                              --topk             40
+                              --temp             0.8 \
+                              --topk             40 \
+                              --samples          20
 
 ## Visualization
 Moreover, there is a module to visualize training metrics.
