@@ -10,7 +10,7 @@ class ProgressBar(object):
                  desc: Optional[str] = None,
                  observe: Optional[Recordable] = None,
                  fstring: Optional[str] = None):
-        self.tqdm_iter = tqdm.trange(end, desc=desc)
+        self.tqdm_iter = tqdm.trange(end, desc=desc, dynamic_ncols=True)
         self.tqdm_iter.update(start)
 
         if observe and fstring:
