@@ -1,10 +1,6 @@
 import argparse
 from . import train, generate, visualize
 
-# Ignore warnings.
-import warnings
-warnings.filterwarnings(action='ignore')
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(

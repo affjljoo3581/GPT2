@@ -11,6 +11,10 @@ from .data.vocabulary import Vocab
 from .data.serving import TokenizedCorpusDataset
 from .modeling.transformer import Transformer
 
+# Ignore warnings.
+import warnings
+warnings.filterwarnings(action='ignore')
+
 
 def _main_worker(rank: int, args: argparse.Namespace):
     if args.gpus:
