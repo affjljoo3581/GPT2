@@ -21,7 +21,7 @@ class PadMasking(nn.Module):
                               dtype=torch.bool, device=x.device)
         mask = torch.cat((shifted, is_pad), dim=-1)
 
-        # Expand the tensor.
+        # Expand the shape of tensor.
         return mask.expand(x.shape + mask.shape[-1:])
 
 
@@ -43,5 +43,5 @@ class FutureMasking(nn.Module):
         future = future.triu(offset + 1)
         mask = future.view((1,) * (x.ndim - 1) + future.size())
 
-        # Expand the tensor.
+        # Expand the shape of tensor.
         return mask.expand(x.shape + mask.shape[-1:])
