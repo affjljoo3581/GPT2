@@ -11,6 +11,7 @@ class ProgressBar(object):
                  observe: Optional[Recordable] = None,
                  fstring: Optional[str] = None):
         self.tqdm_iter = tqdm.trange(end, desc=desc)
+        self.tqdm_iter.update(start)
 
         if observe and fstring:
             def _modified_stamp(step: int = 0):
