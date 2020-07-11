@@ -22,8 +22,8 @@ def _modify_objective(objective: Objective, optimizer: optim.Optimizer):
         return loss
 
     # Modify `objective.forward` to return patched loss tensor.
-    _old_objective_call = objective.__call__
-    objective.__call__ = _modified_objective_call
+    #_old_objective_call = objective.__call__
+    #objective.__call__ = _modified_objective_call
 
 
 def apply(trainer: Trainer):

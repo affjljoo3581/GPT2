@@ -6,7 +6,7 @@ from .preserving import Preservable
 from .recording import Recordable, records
 from ..data.serving import Dataset
 from typing import Optional
-
+from apex import amp
 
 class Trainer(Recordable, Preservable):
     def __init__(self,
@@ -39,7 +39,9 @@ class Trainer(Recordable, Preservable):
         data = self.train_dataset.fetch(batch, device='cuda')
 
         loss = self.train_objective(data['input'], data['output'])
-        loss.backward()
+        with amp.scaled_loss(loss, self.optimizer) as scaled_loss:
+            scaled_loss.backward()
+        #loss.backward()
 
         self.optimizer.step()
         self.scheduler.step()
