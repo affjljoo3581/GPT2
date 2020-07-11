@@ -1,4 +1,4 @@
-from .vocabulary import Vocabulary
+from .vocabulary import Vocab
 import regex as re
 from typing import List
 
@@ -11,7 +11,7 @@ _PUNCTUATION_RANGE = '\\p{P}\x21-\x2f\x3a-\x40\x5b-\x60\x7b-\x7e'
 
 class Tokenizer(object):
     def __init__(self,
-                 vocab: Vocabulary,
+                 vocab: Vocab,
                  special_tokens: List[str] = [],
                  max_word_len: int = 100):
         self.vocab = vocab
