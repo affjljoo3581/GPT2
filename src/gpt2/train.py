@@ -1,4 +1,3 @@
-
 import argparse
 import torch.optim as optim
 import torch.multiprocessing as mp
@@ -74,7 +73,7 @@ def _main_worker(rank: int, args: argparse.Namespace):
 
 def _train_gpt2_model(args: argparse.Namespace):
     if args.gpus:
-        mp.spawn(_main_worker, args=(0, args), nprocs=len(args.gpus))
+        mp.spawn(_main_worker, args=(args,), nprocs=len(args.gpus))
     else:
         _main_worker(0, args)
 
