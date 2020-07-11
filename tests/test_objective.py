@@ -15,4 +15,4 @@ def test_lm_objective_throws_errors():
     objective = LMObjective(_dummy_model(), pad_idx=0)
 
     # Test if the objective throws any error.
-    objective(torch.zeros((10, 7, 100)), torch.randint(0, 100, (10, 7)))
+    objective.loss(torch.zeros((10, 7, 100)), torch.randint(0, 100, (10, 7)))
