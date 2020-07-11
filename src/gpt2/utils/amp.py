@@ -16,9 +16,10 @@ def _modify_objective(objective: Objective, optimizer: optim.Optimizer):
         def _modified_tensor_backward():
             with amp.scale_loss(loss, optimizer) as scaled_loss:
                 scaled_loss.backward()
-        loss.backward = _modified_tensor_backward
+        new_loss = loss.clone()
+        new_loss.backward = _modified_tensor_backward
 
-        return loss
+        return new_loss
 
     # Modify `objective.forward` to return patched loss tensor.
     _old_objective_call = objective.__call__
