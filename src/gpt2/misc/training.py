@@ -18,7 +18,7 @@ class Trainer(Recordable, Preservable):
                  train_objective: Objective,
                  eval_objective: Objective):
         super().__init__()
-        self.iters = 0
+        self.iters = -1
         self.model = model
         self.optimizer = optimizer
         self.scheduler = scheduler

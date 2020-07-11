@@ -58,7 +58,8 @@ def _main_worker(rank: int, args: argparse.Namespace):
 
     # Start training the model.
     progress = ProgressBar(
-        trainer.iters, args.iterations, desc='Train GPT-2', observe=trainer,
+        trainer.iters + 1, args.iterations,
+        desc='Train GPT-2', observe=trainer,
         fstring='train/loss: {train_loss:.4f}, eval/loss: {eval_loss:.4f}')
 
     for trainer.iters in progress:
