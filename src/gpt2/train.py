@@ -36,7 +36,7 @@ def _main_worker(rank: int, args: argparse.Namespace):
     optimizer = fusing.Adam(
         model.parameters(), lr=args.base_lr, weight_decay=args.wd_rate)
     scheduler = optim.lr_scheduler.LambdaLR(
-        optimizer, lambda step: 1 - step / args.total_iters)
+        optimizer, lambda step: 1 - step / args.iterations)
 
     trainer = Trainer(model, optimizer, scheduler, train_dataset, eval_dataset,
                       train_objective=objective, eval_objective=objective)
@@ -55,7 +55,7 @@ def _main_worker(rank: int, args: argparse.Namespace):
 
     # Start training the model.
     progress = ProgressBar(
-        trainer.iters, 10000, desc='Train GPT-2', observe=trainer,
+        trainer.iters, args.iterations, desc='Train GPT-2', observe=trainer,
         fstring='train/loss: {train_loss:.4f}, eval/loss: {eval_loss:.4f}')
 
     for trainer.iters in progress:
