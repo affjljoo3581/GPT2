@@ -39,7 +39,6 @@ def records(scope: str):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(self, *args, **kwargs):
-            print(self, args, kwargs)
             result = func(self, *args, **kwargs)
 
             # Record the output metrics with the given scope prefix.
