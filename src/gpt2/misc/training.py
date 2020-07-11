@@ -39,7 +39,7 @@ class Trainer(Recordable, Preservable):
         data = self.train_dataset.fetch(batch, device='cuda')
 
         loss = self.train_objective(data['input'], data['output'])
-        with amp.scaled_loss(loss, self.optimizer) as scaled_loss:
+        with amp.scale_loss(loss, self.optimizer) as scaled_loss:
             scaled_loss.backward()
         #loss.backward()
 
