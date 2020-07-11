@@ -1,18 +1,11 @@
 import torch
 import torch.nn as nn
+from ..utils.fusing import LayerNorm
 from .masking import PadMasking, FutureMasking
 from .embedding import PositionalEmbedding, TokenEmbedding
-from .attention import AttentionLayer
+from .attention import AttentionLayer, Past
 from .feedforward import PositionwiseFeedForward
 from typing import Optional, Tuple, List
-
-
-# Try to import `apex` library for using fused layer-norm. Note that if `apex`
-# is installed, then ``FusedLayerNorm`` would be used automatically.
-try:
-    from apex.normalization import FusedLayerNorm as LayerNorm
-except ModuleNotFoundError:
-    from torch.nn import LayerNorm
 
 
 class TransformerLayer(nn.Module):
@@ -40,7 +33,7 @@ class TransformerLayer(nn.Module):
 
     def forward(self,
                 x: torch.Tensor,
-                past: Optional[Tuple[torch.Tensor]] = None,
+                past: Optional[Past] = None,
                 mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         # Layer normalizations are performed before the layers respectively.
         a = self.ln_attn(x)
@@ -89,8 +82,8 @@ class Transformer(nn.Module):
 
     def forward(self,
                 x: torch.Tensor,
-                past: Optional[Tuple[torch.Tensor]] = None
-                ) -> Tuple[torch.Tensor, List[Tuple[torch.Tensor]]]:
+                past: Optional[List[Past]] = None
+                ) -> Tuple[torch.Tensor, List[Past]]:
         # The past key-value pairs imply that input sequences are shifted.
         offset = past[0][0].size(-2) if past is not None else 0
 
