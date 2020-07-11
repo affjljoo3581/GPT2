@@ -1,5 +1,5 @@
-from gpt2.data.serving import DataLoader
-from gpt2.data.vocabulary import Vocabulary
+from gpt2.data.serving import TokenizedCorpusDataset
+from gpt2.data.vocabulary import Vocab
 from unittest import mock
 from io import StringIO
 import torch
@@ -44,7 +44,7 @@ _fake_corpus = ('he ##llo wo ##r ##l ##d\n'
 
 
 @mock.patch('builtins.open')
-def test_data_loader_fetches_well(mock_open):
+def test_tokenized_corpus_dataset_skips_well(mock_open):
     mock_open.side_effect = _modified_open_wrapper()
 
     # Create temporary vocabulary and corpus file.
@@ -53,12 +53,39 @@ def test_data_loader_fetches_well(mock_open):
     with open('corpus', 'w') as fp:
         fp.write(_fake_corpus)
 
-    # Create data loader.
-    vocab = Vocabulary(vocab_path='vocab')
-    loader = DataLoader(vocab, corpus='corpus', seq_len=10)
+    # Create dataset.
+    vocab = Vocab(vocab_path='vocab')
+    dataset = TokenizedCorpusDataset(vocab, corpus_path='corpus', seq_len=10)
 
-    # Check if data loader fetches single sequence.
-    data = loader.fetch()
+    # Check if the dataset fetches sequence which is after the skipped one.
+    dataset.skip(1)
+    data = dataset.fetch()
+    input_expected = torch.tensor([0, 8, 11, 5, 12, 7, 4, 6, 1, 2])
+    output_expected = torch.tensor([8, 11, 5, 12, 7, 4, 6, 1, 2, 2])
+
+    assert data['input'].shape == (10,)
+    assert data['output'].shape == (10,)
+
+    assert (data['input'] == input_expected).all()
+    assert (data['output'] == output_expected).all()
+
+
+@mock.patch('builtins.open')
+def test_tokenized_corpus_dataset_fetches_well(mock_open):
+    mock_open.side_effect = _modified_open_wrapper()
+
+    # Create temporary vocabulary and corpus file.
+    with open('vocab', 'w') as fp:
+        fp.write(_fake_vocab)
+    with open('corpus', 'w') as fp:
+        fp.write(_fake_corpus)
+
+    # Create dataset.
+    vocab = Vocab(vocab_path='vocab')
+    dataset = TokenizedCorpusDataset(vocab, corpus_path='corpus', seq_len=10)
+
+    # Check if the dataset fetches single sequence.
+    data = dataset.fetch()
     input_expected = torch.tensor([0, 8, 10, 12, 7, 4, 6, 1, 2, 2])
     output_expected = torch.tensor([8, 10, 12, 7, 4, 6, 1, 2, 2, 2])
 
@@ -68,8 +95,8 @@ def test_data_loader_fetches_well(mock_open):
     assert (data['input'] == input_expected).all()
     assert (data['output'] == output_expected).all()
 
-    # Check if data loader fetches batch sequences.
-    data = loader.fetch(batch=2)
+    # Check if the dataset fetches batch sequences.
+    data = dataset.fetch(batch=2)
     input_expected = torch.tensor([[0, 8, 11, 5, 12, 7, 4, 6, 1, 2],
                                    [0, 9, 4, 5, 12, 7, 4, 6, 1, 2]])
     output_expected = torch.tensor([[8, 11, 5, 12, 7, 4, 6, 1, 2, 2],
