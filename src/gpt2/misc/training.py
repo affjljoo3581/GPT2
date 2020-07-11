@@ -37,10 +37,10 @@ class Trainer(Recordable, Preservable):
         self.optimizer.zero_grad()
 
         data = self.train_dataset.fetch(batch, device='cuda')
-
+        print(self.train_objective.__call__)
         loss = self.train_objective(data['input'], data['output'])
         loss.backward()
-        print(loss.backward)
+
         self.optimizer.step()
         self.scheduler.step()
 
