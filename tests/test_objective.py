@@ -1,4 +1,4 @@
-from gpt2.utils.objective import LMObjective
+from gpt2.misc.objective import LMObjective
 import torch
 import torch.nn as nn
 from typing import Tuple
