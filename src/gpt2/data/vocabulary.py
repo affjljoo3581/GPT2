@@ -1,7 +1,7 @@
 from typing import Union
 
 
-class Vocabulary(object):
+class Vocab(object):
     def __init__(self,
                  vocab_path: str,
                  unk_token: str = '<unk>',
@@ -13,7 +13,6 @@ class Vocabulary(object):
         self.eos_token = eos_token
         self.pad_token = pad_token
 
-        # Create vocabulary dictionary which maps from subwords to indices.
         self.additional_tokens = [bos_token, eos_token, pad_token]
 
         with open(vocab_path, 'r', encoding='utf-8') as fp:
@@ -33,7 +32,7 @@ class Vocabulary(object):
         return (len(self.words) + 7) // 8 * 8
 
     @property
-    def special_tokens(self) -> int:
+    def specials(self) -> int:
         return len(self.additional_tokens)
 
     @property
