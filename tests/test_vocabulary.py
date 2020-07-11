@@ -1,4 +1,4 @@
-from gpt2.data.vocabulary import Vocabulary
+from gpt2.data.vocabulary import Vocab
 from unittest import mock
 from io import StringIO
 
@@ -31,7 +31,7 @@ def test_data_loader_fetches_well(mock_open):
         fp.write('a\nb\nc\nd')
 
     # Create vocabulary.
-    vocab = Vocabulary(vocab_path='vocab')
+    vocab = Vocab(vocab_path='vocab')
 
     # Test if vocabulary maps tokens to indices correctly.
     assert vocab['a'] == 3
