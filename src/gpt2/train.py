@@ -59,13 +59,13 @@ def _main_worker(rank: int, args: argparse.Namespace):
         fstring='train/loss: {train_loss:.4f}, eval/loss: {eval_loss:.4f}')
 
     for trainer.iters in progress:
-        trainer.train(batch=32)
+        trainer.train(batch=args.train_batch)
 
-        if (trainer.iters + 1) % 100 == 0:
-            trainer.evaluate(batch=32)
+        if (trainer.iters + 1) % args.eval_iters == 0:
+            trainer.evaluate(batch=args.eval_batch)
             trainer.stamp(trainer.iters)
 
-        if (trainer.iters + 1) % 1000 == 0:
+        if (trainer.iters + 1) % args.save_iters == 0:
             trainer.preserve(args.checkpoint)
 
     # Save trained model and recorded metrics.
