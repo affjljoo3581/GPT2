@@ -7,6 +7,7 @@ class Preservable(object):
         def _get_state(obj: object):
             # If object has `state_dict` method, use it rather than dump the
             # value directly.
+            print(obj, getattr(obj, 'state_dict', None) is not None)
             return (obj.state_dict()
                     if getattr(obj, 'state_dict', None)
                     else obj)
