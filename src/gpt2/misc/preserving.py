@@ -19,12 +19,12 @@ class Preservable(object):
     def restore(self, checkpoint: str, map_location: Optional[str] = None):
         ckpt = torch.load(checkpoint, map_location=map_location)
         for k, v in ckpt.items():
-            if getattr(self[k], 'load_state_dict', None):
+            if getattr(getattr(self, k), 'load_state_dict', None):
                 # If object has `load_state_dict` method, use it rather than
                 # assign the value directly.
-                self[k].load_state_dict(v)
+                getattr(self, k).load_state_dict(v)
             else:
-                self[k] = v
+                setattr(self, k, v)
 
         # Remove used checkpoint object and clear cuda cache to prevent out of
         # memory error.
