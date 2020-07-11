@@ -7,10 +7,11 @@ class Preservable(object):
         def _get_state(obj: object):
             # If object has `state_dict` method, use it rather than dump the
             # value directly.
-            print(obj, callable(obj))
-            return (obj.state_dict()
+            r = (obj.state_dict()
                     if getattr(obj, 'state_dict', None)
                     else obj)
+            print(obj, r)
+            return r
 
         torch.save({k: _get_state(v)
                     for k, v in self.__dict__.items()
