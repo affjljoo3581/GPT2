@@ -39,10 +39,8 @@ class Trainer(Recordable, Preservable):
         data = self.train_dataset.fetch(batch, device='cuda')
 
         loss = self.train_objective(data['input'], data['output'])
-        with amp.scale_loss(loss, self.optimizer) as scaled_loss:
-            scaled_loss.backward()
-        #loss.backward()
-
+        loss.backward()
+        print(loss.backward)
         self.optimizer.step()
         self.scheduler.step()
 
