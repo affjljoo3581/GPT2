@@ -6,7 +6,7 @@ from .preserving import Preservable
 from .recording import Recordable, records
 from ..data.serving import Dataset
 from typing import Optional
-from apex import amp
+
 
 class Trainer(Recordable, Preservable):
     def __init__(self,
@@ -37,8 +37,8 @@ class Trainer(Recordable, Preservable):
         self.optimizer.zero_grad()
 
         data = self.train_dataset.fetch(batch, device='cuda')
-        print(self.train_objective.__call__)
-        loss = self.train_objective(data['input'], data['output'])
+
+        loss = self.train_objective.loss(data['input'], data['output'])
         loss.backward()
 
         self.optimizer.step()
@@ -52,6 +52,6 @@ class Trainer(Recordable, Preservable):
             self.model.eval()
 
             data = self.eval_dataset.fetch(batch, device='cuda')
-            loss = self.eval_objective(data['input'], data['output'])
+            loss = self.eval_objective.loss(data['input'], data['output'])
 
         return {'loss': loss.item()}
