@@ -19,9 +19,10 @@ class TokenizedCorpusDataset(Dataset):
         self.seq_len = seq_len
 
     def skip(self, count: int):
-        if not self.corpus_fp.readline():
-            self.corpus_fp.seek(0)
-            self.corpus_fp.readline()
+        for _ in range(count):
+            if not self.corpus_fp.readline():
+                self.corpus_fp.seek(0)
+                self.corpus_fp.readline()
 
     def _fetch_one(self) -> Dict[str, List[int]]:
         while True:
