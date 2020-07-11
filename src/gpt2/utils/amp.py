@@ -1,3 +1,4 @@
+import torch
 import torch.optim as optim
 from ..misc.training import Trainer
 from ..misc.objective import Objective
@@ -15,11 +16,10 @@ def _modify_objective(objective: Objective, optimizer: optim.Optimizer):
         # Patch `loss.backward` to perform loss scaling.
         def _modified_tensor_backward():
             with amp.scale_loss(loss, optimizer) as scaled_loss:
-                scaled_loss.backward()
-        new_loss = loss.clone()
-        new_loss.backward = _modified_tensor_backward
+                torch.autograd.backward(scaled_loss)
+        loss.backward = _modified_tensor_backward
 
-        return new_loss
+        return loss
 
     # Modify `objective.forward` to return patched loss tensor.
     _old_objective_call = objective.__call__
