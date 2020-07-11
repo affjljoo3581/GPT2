@@ -10,8 +10,8 @@ except ModuleNotFoundError:
 
 
 def _modify_objective(objective: Objective, optimizer: optim.Optimizer):
-    def _modified_objective_call(*args, **kwargs):
-        loss = _old_objective_call(*args, **kwargs)
+    def _modified_objective_loss(*args, **kwargs):
+        loss = _old_objective_loss(*args, **kwargs)
 
         # Patch `loss.backward` to perform loss scaling.
         def _modified_tensor_backward():
@@ -21,9 +21,9 @@ def _modify_objective(objective: Objective, optimizer: optim.Optimizer):
 
         return loss
 
-    # Modify `objective.forward` to return patched loss tensor.
-    _old_objective_call = objective.__call__
-    objective.__call__ = _modified_objective_call
+    # Modify `objective.loss` to return patched loss tensor.
+    _old_objective_loss = objective.loss
+    objective.loss = _modified_objective_loss
 
 
 def apply(trainer: Trainer):
