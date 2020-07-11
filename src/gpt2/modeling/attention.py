@@ -3,6 +3,9 @@ import torch
 import torch.nn as nn
 from typing import Optional, Tuple
 
+# Define new type `Past` which is a tuple of two `torch.Tensor`.
+Past = Tuple[torch.Tensor, torch.Tensor]
+
 
 class BaseAttention(nn.Module):
     """
@@ -104,9 +107,9 @@ class AttentionLayer(nn.Module):
                 q: torch.Tensor,
                 k: torch.Tensor,
                 v: torch.Tensor,
-                past: Optional[Tuple[torch.Tensor]] = None,
+                past: Optional[Past] = None,
                 mask: Optional[torch.Tensor] = None
-                ) -> Tuple[torch.Tensor, Tuple[torch.Tensor]]:
+                ) -> Tuple[torch.Tensor, Past]:
         # Project input tensors.
         q = self.proj_q(q)
         k = self.proj_k(k)
