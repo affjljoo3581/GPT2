@@ -2,6 +2,7 @@ import torch
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel
 from ..data.serving import Dataset
+from ..misc import progress
 from ..misc.training import Trainer
 from typing import Optional, List
 
@@ -20,6 +21,10 @@ def initialize(idx: int, gpus: List[int]):
                             init_method='tcp://127.0.0.1:8000',
                             world_size=len(gpus),
                             rank=idx)
+
+    # Disable progress bar if current process is not a master.
+    if idx != 0:
+        progress.ProgressBar = lambda start, end, *_: range(start, end)
 
 
 def _modify_dataset(dataset: Dataset, idx: int, gpus: List[int]):
