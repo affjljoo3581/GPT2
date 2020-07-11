@@ -64,10 +64,10 @@ def apply(trainer: Trainer):
     _modify_dataset(trainer.train_dataset, _current_idx, _gpu_devices)
     _modify_dataset(trainer.eval_dataset, _current_idx, _gpu_devices)
 
-    # Modify `trainer.load` to load training states to the corresponding device
-    # memory.
-    trainer.load = lambda ckpt, _ = None, _old_load = trainer.load: \
-        _old_load(ckpt, map_location=f'cuda:{_gpu_devices[_current_idx]}')
+    # Modify `trainer.restore` to load training states to the corresponding
+    # device memory.
+    trainer.restore = lambda ckpt, _ = None, _old_restore = trainer.restore: \
+        _old_restore(ckpt, map_location=f'cuda:{_gpu_devices[_current_idx]}')
 
     # Prevent saving the training states except for the master gpu process.
     if _current_idx != 0:
