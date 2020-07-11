@@ -1,6 +1,6 @@
 import string
 from unittest import mock
-from gpt2.data.vocabulary import Vocabulary
+from gpt2.data.vocabulary import Vocab
 from gpt2.data.tokenization import Tokenizer
 
 
@@ -16,7 +16,7 @@ def test_tokenizer_encodes_well(mock_open):
     file_mock.read.return_value = _fake_vocab
 
     # Create vocabulary and subword tokenizer.
-    vocab = Vocabulary('')
+    vocab = Vocab('')
     tokenizer = Tokenizer(vocab, special_tokens=['<unk>'])
 
     # Check if tokenizer encodes well.
@@ -31,7 +31,7 @@ def test_tokenizer_decodes_well(mock_open):
     file_mock.read.return_value = _fake_vocab
 
     # Create vocabulary and subword tokenizer.
-    vocab = Vocabulary('')
+    vocab = Vocab('')
     tokenizer = Tokenizer(vocab, special_tokens=['<unk>'])
 
     # Check if tokenizer decodes well.
