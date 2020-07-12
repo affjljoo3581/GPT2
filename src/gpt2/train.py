@@ -10,7 +10,6 @@ from .misc.progress import ProgressBar
 from .data.vocabulary import Vocab
 from .data.serving import TokenizedCorpusDataset
 from .modeling.transformer import Transformer
-import torch.cuda.nvtx as nvtx
 
 # Ignore warnings.
 import warnings
@@ -64,22 +63,14 @@ def _main_worker(rank: int, args: argparse.Namespace):
         fstring='train/loss: {train_loss:.4f}, eval/loss: {eval_loss:.4f}')
 
     for trainer.iters in progress:
-        nvtx.range_push(f'Iteration {trainer.iters + 1}')
-
-        nvtx.range_push('trainer.train')
         trainer.train(batch=args.batch_train)
-        nvtx.range_pop()
 
         if (trainer.iters + 1) % args.eval_iters == 0:
-            nvtx.range_push('trainer.evaluate')
             trainer.evaluate(batch=args.batch_eval)
-            nvtx.range_pop()
             trainer.stamp(trainer.iters)
 
         if (trainer.iters + 1) % args.save_iters == 0:
             trainer.preserve(args.checkpoint)
-
-        nvtx.range_pop()
 
     # Save trained model and recorded metrics.
     trainer.save(args.checkpoint)
