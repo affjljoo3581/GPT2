@@ -6,6 +6,7 @@ from .preserving import Preservable
 from .recording import Recordable, records
 from ..data.serving import Dataset
 from typing import Optional
+import torch.cuda.nvtx as nvtx
 
 
 class Trainer(Recordable, Preservable):
@@ -33,16 +34,26 @@ class Trainer(Recordable, Preservable):
 
     @records('train')
     def train(self, batch: Optional[int] = None):
+        nvtx.range_push('initialize')
         self.model.train()
         self.optimizer.zero_grad()
+        nvtx.range_pop()
 
+        nvtx.range_push('dataset.fetch')
         data = self.train_dataset.fetch(batch, device='cuda')
+        nvtx.range_pop()
 
+        nvtx.range_push('optimize model')
+        nvtx.range_push('objective.loss & loss.backward')
         loss = self.train_objective.loss(data['input'], data['output'])
         loss.backward()
+        nvtx.range_pop()
 
+        nvtx.range_push('optimizer.step')
         self.optimizer.step()
         self.scheduler.step()
+        nvtx.range_pop()
+        nvtx.range_pop()
 
         return {'loss': loss.item()}
 
@@ -51,7 +62,11 @@ class Trainer(Recordable, Preservable):
         with torch.no_grad():
             self.model.eval()
 
+            nvtx.range_push('dataset.fetch')
             data = self.eval_dataset.fetch(batch, device='cuda')
+            nvtx.range_pop()
+            nvtx.range_push('objective.loss')
             loss = self.eval_objective.loss(data['input'], data['output'])
+            nvtx.range_pop()
 
         return {'loss': loss.item()}
