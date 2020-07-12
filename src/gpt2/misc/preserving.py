@@ -4,17 +4,16 @@ from typing import Optional
 
 class Preservable(object):
     def preserve(self, checkpoint: str):
-        def _get_state(obj: object):
-            # If object has `state_dict` method, use it rather than dump the
-            # value directly.
-            return (obj.state_dict()
-                    if getattr(obj, 'state_dict', None)
-                    else obj)
+        ckpt = {}
+        for k, v in self.__dict__.items():
+            if getattr(v, 'state_dict', None):
+                # If object has `state_dict` method, use it rather than dump
+                # the value directly.
+                ckpt[k] = v.state_dict()
+            elif not callable(v):
+                ckpt[k] = v
 
-        torch.save({k: _get_state(v)
-                    for k, v in self.__dict__.items()
-                    if not callable(v)},
-                   checkpoint)
+        torch.save(ckpt, checkpoint)
 
     def restore(self, checkpoint: str, map_location: Optional[str] = None):
         ckpt = torch.load(checkpoint, map_location=map_location)
