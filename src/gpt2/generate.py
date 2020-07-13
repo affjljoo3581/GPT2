@@ -15,7 +15,7 @@ def _generate_sentence(args: argparse.Namespace):
     model = Transformer(layers=args.layers, pad_idx=vocab.pad_idx,
                         words=len(vocab), seq_len=args.seq_len,
                         heads=args.heads, dims=args.dims, rate=args.rate,
-                        dropout=args.dropout, bidirectional=False)
+                        dropout=0, bidirectional=False)
     model.eval()
 
     # Create integrated sentence generator.
