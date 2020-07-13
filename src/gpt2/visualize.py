@@ -19,8 +19,8 @@ def _visualize_metrics(args: argparse.Namespace):
     plt.legend(loc='top right')
 
     plt.subplot(222)
-    plt.plot(eval_steps, eval_metrics['loss'], label='evaluation')
-    plt.plot(train_steps, train_metrics['loss'], label='training')
+    plt.plot(eval_steps, eval_metrics, label='evaluation')
+    plt.plot(train_steps, train_metrics, label='training')
     plt.xscale('log')
     plt.title('Log-Scale Cross-Entropy Loss')
     plt.xlabel('Iterations (Log Scale)')
