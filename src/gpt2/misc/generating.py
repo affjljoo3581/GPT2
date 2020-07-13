@@ -43,12 +43,13 @@ class Generator(object):
         words = [self.vocab[t] for t in self.tokenizer.encode(context)]
         words = [self.vocab.bos_idx] + words
 
-        current, total_log_prob, past = words, 0, None
+        current, total_log_prob, generated, past = words, 0, 0, None
         while len(current) < self.seq_len:
             pred, log_prob, past = self._sample_next_word(current, past)
             total_log_prob += log_prob
 
             current = [pred]
+            generated += 1
             words.append(pred)
 
             # Finish generating sentence if end-of-sentence token is
@@ -57,7 +58,7 @@ class Generator(object):
                 break
 
         sentence = self.tokenizer.decode([self.vocab[t] for t in words])
-        return sentence, total_log_prob
+        return sentence, total_log_prob / generated
 
     def generate(self, context: str, samples: int = 20) -> Tuple[str, float]:
         return max([self._sample(context)
