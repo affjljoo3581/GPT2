@@ -14,20 +14,32 @@ class Generator(object):
                  model: nn.Module,
                  seq_len: int,
                  temp: float = 0.8,
-                 topk: int = 40):
+                 topk: int = 40,
+                 use_gpu: bool = False):
+        if use_gpu:
+            model.cuda()
+
         self.vocab = vocab
         self.tokenizer = tokenizer
         self.model = model
         self.seq_len = seq_len
         self.temp = temp
         self.topk = topk
+        self.use_gpu = use_gpu
 
     def _sample_next_word(self,
                           words: List[int],
                           past: Optional[Past] = None) -> int:
         with torch.no_grad():
-            x = torch.tensor([words], dtype=torch.long)
+            x = torch.tensor([words],
+                             dtype=torch.long,
+                             device='cuda' if self.use_gpu else 'cpu')
             logits, past = self.model(x, past)
+
+            # If tokens are predicted on GPU, move the calculated logits to
+            # CPU.
+            if self.use_gpu:
+                logits = logits.cpu()
 
         probs = (logits[0, -1] / self.temp).softmax(-1).numpy()
         targets = probs.argsort()[-self.topk:][::-1]
@@ -61,5 +73,5 @@ class Generator(object):
         return sentence, total_log_prob / generated
 
     def generate(self, context: str, samples: int = 20) -> Tuple[str, float]:
-        return max([self._sample(context)
-                    for _ in range(samples)], key=lambda sample: sample[1])
+        return max([self._sample(context) for _ in range(samples)],
+                   key=lambda sample: sample[1])

@@ -22,8 +22,12 @@ def _generate_sentence(args: argparse.Namespace):
     generator = Generator(vocab, tokenizer, model, seq_len=args.seq_len,
                           temp=args.temp, topk=args.topk)
 
+    if args.use_gpu:
+        generator.cuda()
+
     # Restore trained GPT-2 parameters from checkpoint.
-    ckpt = torch.load(args.checkpoint)
+    ckpt = torch.load(args.checkpoint,
+                      map_location='cpu' if args.use_gpu else 'cuda')
     model.load_state_dict(ckpt['model'])
 
     # Start generating sentence interactively.
@@ -57,5 +61,7 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         help='number of samples to generate')
     parser.add_argument('--topk', default=40, type=int,
                         help='number of next-word candidates')
+    parser.add_argument('--use_gpu', action='store_true',
+                        help='use gpu for generating sentences.')
 
     parser.set_defaults(func=_generate_sentence)
