@@ -4,6 +4,7 @@ from torch.nn.parallel import DistributedDataParallel
 from ..data.serving import Dataset
 from ..misc import progress
 from ..misc.training import Trainer
+from ..misc.objective import Objective
 from typing import Optional, List
 
 
@@ -49,6 +50,24 @@ def _modify_dataset(dataset: Dataset, idx: int, gpus: List[int]):
     dataset.fetch = _modified_dataset_fetch
 
 
+def _modify_objective(objective: Objective,  num_gpus: int):
+    def _modified_objective_loss(*args, **kwargs):
+        loss = _old_objective_loss(*args, **kwargs)
+
+        # Patch `loss.backward` to perform loss scaling.
+        def _modified_tensor_item():
+            rt = loss.clone()
+            dist.all_reduce(rt, op=dist.reduce_op.SUM)
+            return (rt / num_gpus).item()
+        loss.item = _modified_tensor_item
+
+        return loss
+
+    # Modify `objective.loss` to return patched loss tensor.
+    _old_objective_loss = objective.loss
+    objective.loss = _modified_objective_loss
+
+
 def apply(trainer: Trainer):
     # Use previously stored states.
     global _current_idx
@@ -60,6 +79,9 @@ def apply(trainer: Trainer):
 
     trainer.train_objective.model = trainer.model
     trainer.eval_objective.model = trainer.model
+
+    _modify_objective(trainer.train_objective, len(_gpu_devices))
+    _modify_objective(trainer.eval_objective, len(_gpu_devices))
 
     _modify_dataset(trainer.train_dataset, _current_idx, _gpu_devices)
     _modify_dataset(trainer.eval_dataset, _current_idx, _gpu_devices)
