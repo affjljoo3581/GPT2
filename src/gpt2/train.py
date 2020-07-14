@@ -61,7 +61,7 @@ def _main_worker(rank: int, args: argparse.Namespace):
         trainer.iters + 1, args.iterations,
         desc='Train GPT-2', observe=trainer,
         fstring='train/loss: {train_loss:.4f}, eval/loss: {eval_loss:.4f}')
-
+    print(progress)
     for trainer.iters in progress:
         trainer.train(batch=args.batch_train)
 
