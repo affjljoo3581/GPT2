@@ -6,7 +6,7 @@ from .utils import fusing
 from .utils import distributing
 from .misc.training import Trainer
 from .misc.objective import LMObjective
-from .misc.progress import ProgressBar
+from .misc import progress as p
 from .data.vocabulary import Vocab
 from .data.serving import TokenizedCorpusDataset
 from .modeling.transformer import Transformer
@@ -57,7 +57,7 @@ def _main_worker(rank: int, args: argparse.Namespace):
         trainer.restore(args.restore)
 
     # Start training the model.
-    progress = ProgressBar(
+    progress = p.ProgressBar(
         trainer.iters + 1, args.iterations,
         desc='Train GPT-2', observe=trainer,
         fstring='train/loss: {train_loss:.4f}, eval/loss: {eval_loss:.4f}')
