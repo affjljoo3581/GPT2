@@ -4,9 +4,9 @@ import torch.multiprocessing as mp
 from .utils import amp
 from .utils import fusing
 from .utils import distributing
+from .misc import progress
 from .misc.training import Trainer
 from .misc.objective import LMObjective
-from .misc import progress as p
 from .data.vocabulary import Vocab
 from .data.serving import TokenizedCorpusDataset
 from .modeling.transformer import Transformer
@@ -57,12 +57,12 @@ def _main_worker(rank: int, args: argparse.Namespace):
         trainer.restore(args.restore)
 
     # Start training the model.
-    progress = p.ProgressBar(
+    progressbar = progress.ProgressBar(
         trainer.iters + 1, args.iterations,
         desc='Train GPT-2', observe=trainer,
         fstring='train/loss: {train_loss:.4f}, eval/loss: {eval_loss:.4f}')
-    print(progress)
-    for trainer.iters in progress:
+
+    for trainer.iters in progressbar:
         trainer.train(batch=args.batch_train)
 
         if (trainer.iters + 1) % args.eval_iters == 0:

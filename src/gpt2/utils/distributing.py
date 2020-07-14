@@ -25,8 +25,7 @@ def initialize(idx: int, gpus: List[int]):
 
     # Disable progress bar if current process is not a master.
     if idx != 0:
-        progress.ProgressBar = lambda start, end, *_: range(start, end)
-        print(progress.ProgressBar)
+        progress.ProgressBar = lambda start, end, *_, **__: range(start, end)
 
 
 def _modify_dataset(dataset: Dataset, idx: int, gpus: List[int]):
