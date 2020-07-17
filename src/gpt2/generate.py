@@ -20,10 +20,7 @@ def _generate_sentence(args: argparse.Namespace):
 
     # Create integrated sentence generator.
     generator = Generator(vocab, tokenizer, model, seq_len=args.seq_len,
-                          temp=args.temp, topk=args.topk)
-
-    if args.use_gpu:
-        generator.cuda()
+                          temp=args.temp, topk=args.topk, use_gpu=args.use_gpu)
 
     # Restore trained GPT-2 parameters from checkpoint.
     ckpt = torch.load(args.checkpoint,
