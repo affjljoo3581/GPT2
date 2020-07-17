@@ -39,7 +39,7 @@ class Generator(object):
             # If tokens are predicted on GPU, move the calculated logits to
             # CPU.
             if self.use_gpu:
-                logits = logits.cpu()
+                logits = logits.cpu().float()
 
         probs = (logits[0, -1] / self.temp).softmax(-1).numpy()
         targets = probs.argsort()[-self.topk:][::-1]
