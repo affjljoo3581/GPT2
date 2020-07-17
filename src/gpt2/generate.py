@@ -27,7 +27,7 @@ def _generate_sentence(args: argparse.Namespace):
 
     # Restore trained GPT-2 parameters from checkpoint.
     ckpt = torch.load(args.checkpoint,
-                      map_location='cpu' if args.use_gpu else 'cuda')
+                      map_location='cuda' if args.use_gpu else 'cpu')
     model.load_state_dict(ckpt['model'])
 
     # Start generating sentence interactively.
