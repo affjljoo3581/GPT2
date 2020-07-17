@@ -17,7 +17,7 @@ class Generator(object):
                  topk: int = 40,
                  use_gpu: bool = False):
         if use_gpu:
-            model.cuda()
+            model.cuda().half()
 
         self.vocab = vocab
         self.tokenizer = tokenizer
