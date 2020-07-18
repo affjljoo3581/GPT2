@@ -41,8 +41,7 @@ class Generator(object):
                           np.full_like(probs, -np.inf))
         next_words = probs.argmax(axis=-1)
 
-        return (np.random.choice(indices, p=probs / probs.sum()),
-                probs[next_words])
+        return next_words, probs[next_words]
 
     def _predict_probs(self,
                        words: List[List[int]],
