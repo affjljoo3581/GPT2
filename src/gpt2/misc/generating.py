@@ -32,7 +32,7 @@ class Generator(object):
         mask = probs.cumsum(-1) > self.top_p
         mask[0] = False
 
-        probs.masked_fill_(mask, value=-1e10)
+        probs.masked_fill_(mask, 0)
 
         # Sample from filtered distribution.
         return indices[probs.multinomial(1)[0]]
