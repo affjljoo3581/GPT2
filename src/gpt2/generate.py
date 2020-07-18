@@ -30,8 +30,7 @@ def _generate_sentence(args: argparse.Namespace):
     # Start generating sentence interactively.
     while True:
         context = input('>>')
-        sentence, log_prob = generator.generate(context, samples=args.samples)
-        print(f'[log prob: {log_prob:.4f}] {sentence}')
+        print(generator.generate(context))
 
 
 def add_subparser(subparsers: argparse._SubParsersAction):
@@ -54,8 +53,6 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         help='increase rate of dimensionality in bottleneck')
     parser.add_argument('--top_p', default=0.92, type=float,
                         help='probability threshold for nucleus sampling.')
-    parser.add_argument('--samples', default=20, type=int,
-                        help='number of generating samples')
     parser.add_argument('--use_gpu', action='store_true',
                         help='use gpu for generating sentences.')
 

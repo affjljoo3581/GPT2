@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import numpy as np
 from ..data.vocabulary import Vocab
 from ..data.tokenization import Tokenizer
 from ..modeling.attention import Past
@@ -25,31 +24,23 @@ class Generator(object):
         self.top_p = top_p
         self.use_gpu = use_gpu
 
-    def _sample_from_top_p(self, probs: np.ndarray
+    def _sample_from_top_p(self, logits: torch.Tensor
                            ) -> Tuple[List[int], List[float]]:
-        # Sort probabilities and indices.
-        indices, sorted_probs = np.argsort(probs)[:, ::-1], \
-                                np.sort(probs)[:, ::-1]
+        # Sort the logits and use only top-p tokens.
+        sorted_logits, indices = logits.sort(descending=True)
+        sorted_logits.masked_fill_(
+            sorted_logits.softmax().cumsum() > self.top_p,
+            value=-1e10)
 
-        # Mask tokens which are not in top-p.
-        mask = sorted_probs.cumsum(axis=-1) > self.top_p
-        mask[:, 0] = False
-
-        sorted_probs[mask] = 0
-        sorted_probs /= sorted_probs.sum(axis=-1)
-
-        # Use gumbel-max trick to sample next tokens.
-        sorted_probs += np.random.gumbel(size=sorted_probs.shape)
-        next_words = [indices[i, t]
-                      for i, t in enumerate(sorted_probs.argmax(axis=-1))]
-
-        return next_words, [probs[i, t] for i, t in enumerate(next_words)]
+        # Use gumbel-max trick to sample from logits.
+        gumbels = -torch.empty_like(sorted_logits).exponential_().log()
+        return indices[(sorted_logits + gumbels).argmax()]
 
     @torch.no_grad()
-    def _predict_probs(self,
-                       words: List[List[int]],
-                       past: Optional[List[Past]] = None
-                       ) -> Tuple[np.ndarray, List[Past]]:
+    def _predict_logits(self,
+                        words: List[int],
+                        past: Optional[List[Past]] = None
+                        ) -> Tuple[torch.Tensor, List[Past]]:
         x = torch.tensor(words,
                          dtype=torch.long,
                          device='cuda' if self.use_gpu else 'cpu')
@@ -59,28 +50,26 @@ class Generator(object):
         if self.use_gpu:
             logits = logits.cpu().float()
 
-        probs = logits[:, -1, :].softmax(axis=-1).numpy()
-        return probs, past
+        return logits[-1, :], past
 
-    def generate(self, context: str, samples: int = 20) -> Tuple[str, float]:
-        context = self.tokenizer.encode(context)
-        sentences = [[self.vocab.bos_idx] + [self.vocab[t] for t in context]
-                     for _ in range(samples)]
-        log_probs = [0 for _ in range(samples)]
+    def generate(self, context: str) -> str:
+        words = [self.vocab[t] for t in self.tokenizer.encode(context)]
+        words = [self.vocab.bos_idx] + words
 
-        current, past = sentences, None
-        for _ in range(len(sentences[0]), self.seq_len):
-            probs, past = self._predict_probs(current, past)
-            next_words, next_probs = self._sample_from_top_p(probs)
+        current, past = words, None
+        while len(words) < self.seq_len:
+            # Predict next-word distribution and sample from it.
+            logits, past = self._predict_logits(current, past)
+            next_word = self._sample_from_top_p(logits)
 
-            # Add sampled next tokens to the sequences.
-            for i in range(samples):
-                if sentences[i][-1] != self.vocab.eos_idx:
-                    sentences[i].append(next_words[i])
-                    log_probs[i] += np.log(next_probs[i])
+            # Add sampled word to the sequence and change the current
+            # subsequence to the sampled word.
+            words.append(next_word)
+            current = [next_word]
 
-            current = [[w] for w in next_words]
+            # If end-of-sentence token is sampled, then terminate generating
+            # sentence.
+            if next_word == self.vocab.eos_idx:
+                break
 
-        words = [self.tokenizer.decode([self.vocab[w] for w in words])
-                 for words in sentences]
-        return max(list(zip(words, log_probs)), key=lambda sample: sample[1])
+        return self.tokenizer.decode([self.vocab[w] for w in words])
