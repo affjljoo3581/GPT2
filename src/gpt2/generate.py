@@ -20,7 +20,7 @@ def _generate_sentence(args: argparse.Namespace):
 
     # Create integrated sentence generator.
     generator = Generator(vocab, tokenizer, model, seq_len=args.seq_len,
-                          topk=args.topk, temperature=args.temperature,
+                          top_p=args.top_p, temperature=args.temperature,
                           use_gpu=args.use_gpu)
 
     # Restore trained GPT-2 parameters from checkpoint.
