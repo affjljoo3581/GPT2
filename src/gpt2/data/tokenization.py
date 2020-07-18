@@ -30,7 +30,9 @@ class Tokenizer(object):
                                 .replace(' !', '!')
                                 .replace(' ,', ',')
                                 .replace(' \' ', '\'')
-                                .replace(' \" ', '\"'))
+                                .replace(' \" ', '\"')
+                                .replace('\'\'', '\' \'')
+                                .replace('\"\"', "\" \""))
 
     def _normalize(self, text: str) -> List[str]:
         # Clear text by normalizing whitespace characters and removing control
