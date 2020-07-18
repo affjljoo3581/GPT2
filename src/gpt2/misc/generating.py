@@ -31,28 +31,29 @@ class Generator(object):
         indices, sorted_probs = np.argsort(probs)[:, ::-1], \
                                 np.sort(probs)[:, ::-1]
 
-        # Create top-p mask.
-        mask = sorted_probs.cumsum(axis=-1) < self.top_p
-        mask[:, 0] = True
+        # Mask tokens which are not in top-p.
+        mask = sorted_probs.cumsum(axis=-1) > self.top_p
+        mask[:, 0] = False
+
+        sorted_probs[mask] = 0
+        sorted_probs /= sorted_probs.sum(axis=-1)
 
         # Use gumbel-max trick to sample next tokens.
-        sorted_probs += np.where(mask,
-                                 np.random.gumbel(size=sorted_probs.shape),
-                                 np.full_like(sorted_probs, -np.inf))
+        sorted_probs += np.random.gumbel(size=sorted_probs.shape)
         next_words = [indices[i, t]
                       for i, t in enumerate(sorted_probs.argmax(axis=-1))]
 
         return next_words, [probs[i, t] for i, t in enumerate(next_words)]
 
+    @torch.no_grad()
     def _predict_probs(self,
                        words: List[List[int]],
                        past: Optional[List[Past]] = None
                        ) -> Tuple[np.ndarray, List[Past]]:
-        with torch.no_grad():
-            x = torch.tensor(words,
-                             dtype=torch.long,
-                             device='cuda' if self.use_gpu else 'cpu')
-            logits, past = self.model(x, past)
+        x = torch.tensor(words,
+                         dtype=torch.long,
+                         device='cuda' if self.use_gpu else 'cpu')
+        logits, past = self.model(x, past)
 
         # If tokens are predicted on GPU, move the calculated logits to CPU.
         if self.use_gpu:
