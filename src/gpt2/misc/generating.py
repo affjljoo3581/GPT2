@@ -13,8 +13,8 @@ class Generator(object):
                  tokenizer: Tokenizer,
                  model: nn.Module,
                  seq_len: int,
-                 temp: float = 0.8,
-                 topk: int = 40,
+                 top_p: float = 0.92,
+                 temperature: float = 0.8,
                  use_gpu: bool = False):
         if use_gpu:
             model.cuda().half()
@@ -23,55 +23,63 @@ class Generator(object):
         self.tokenizer = tokenizer
         self.model = model
         self.seq_len = seq_len
-        self.temp = temp
-        self.topk = topk
+        self.top_p = top_p
+        self.temperature = temperature
         self.use_gpu = use_gpu
 
-    def _sample_next_word(self,
-                          words: List[int],
-                          past: Optional[Past] = None) -> int:
+    def _sample_from_top_p(self, probs: np.ndarray) -> Tuple[int, float]:
+        # Sort probabilities and indices.
+        indices = (-probs).argsort(axis=-1)
+        probs = probs[indices]
+
+        # Create top-p mask.
+        mask = probs.cumsum() < self.top_p
+        mask[:, 0] = True
+
+        # Use gumbel-max trick to sample next tokens.
+        probs += np.where(mask,
+                          np.random.gumbel(size=probs.size),
+                          probs.full_like(-np.inf))
+        next_words = probs.argmax(axis=-1)
+
+        return (np.random.choice(indices, p=probs / probs.sum()),
+                probs[next_words])
+
+    def _predict_probs(self,
+                       words: List[List[int]],
+                       past: Optional[List[Past]] = None
+                       ) -> Tuple[np.ndarray, List[Past]]:
         with torch.no_grad():
-            x = torch.tensor([words],
+            x = torch.tensor(words,
                              dtype=torch.long,
                              device='cuda' if self.use_gpu else 'cpu')
             logits, past = self.model(x, past)
 
-            # If tokens are predicted on GPU, move the calculated logits to
-            # CPU.
-            if self.use_gpu:
-                logits = logits.cpu().float()
+        # If tokens are predicted on GPU, move the calculated logits to CPU.
+        if self.use_gpu:
+            logits = logits.cpu().float()
 
-        probs = (logits[0, -1] / self.temp).softmax(-1).numpy()
-        targets = probs.argsort()[-self.topk:][::-1]
-
-        # Sample next token from calculated distribution.
-        pred = np.random.choice(
-            targets, p=(probs[targets] / probs[targets].sum()))
-
-        return pred, np.log(probs[pred]), past
-
-    def _sample(self, context: str) -> Tuple[str, float]:
-        # Encode the given context sentence and add begin-of-sentence token.
-        words = [self.vocab[t] for t in self.tokenizer.encode(context)]
-        words = [self.vocab.bos_idx] + words
-
-        current, total_log_prob, generated, past = words, 0, 0, None
-        while len(current) < self.seq_len:
-            pred, log_prob, past = self._sample_next_word(current, past)
-            total_log_prob += log_prob
-
-            current = [pred]
-            generated += 1
-            words.append(pred)
-
-            # Finish generating sentence if end-of-sentence token is
-            # predicted.
-            if pred == self.vocab.eos_idx:
-                break
-
-        sentence = self.tokenizer.decode([self.vocab[t] for t in words])
-        return sentence, total_log_prob / generated
+        probs = (logits[:, -1, :] / self.temperature).softmax(axis=-1).numpy()
+        return probs, past
 
     def generate(self, context: str, samples: int = 20) -> Tuple[str, float]:
-        return max([self._sample(context) for _ in range(samples)],
-                   key=lambda sample: sample[1])
+        context = self.tokenizer.encode(context)
+        sentences = [[self.vocab.bos_idx] + [self.vocab[t] for t in context]
+                     for _ in range(samples)]
+        log_probs = [0 for _ in range(samples)]
+
+        current, past = sentences, None
+        for _ in range(len(sentences[0]), self.seq_len):
+            probs, past = self._predict_probs(current, past)
+            next_words, next_probs = self._sample_from_top_p(probs)
+
+            # Add sampled next tokens to the sequences.
+            for i in range(samples):
+                if sentences[i][-1] != self.vocab.eos_idx:
+                    sentences[i].append(next_words[i])
+                    log_probs[i] += np.log(next_probs[i])
+
+            current = next_words.unsqueeze(1)
+
+        words = [self.tokenizer.decode(words) for words in sentences]
+        return max(list(zip(words, log_probs)), key=lambda sample: sample[1])
