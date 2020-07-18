@@ -29,7 +29,7 @@ class Generator(object):
         # Sort the logits and use only top-p tokens.
         sorted_logits, indices = logits.sort(descending=True)
         sorted_logits.masked_fill_(
-            sorted_logits.softmax().cumsum() > self.top_p,
+            sorted_logits.softmax(-1).cumsum(-1) > self.top_p,
             value=-1e10)
 
         # Use gumbel-max trick to sample from logits.
