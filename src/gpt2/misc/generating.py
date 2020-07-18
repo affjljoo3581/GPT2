@@ -14,7 +14,6 @@ class Generator(object):
                  model: nn.Module,
                  seq_len: int,
                  top_p: float = 0.92,
-                 temperature: float = 0.8,
                  use_gpu: bool = False):
         if use_gpu:
             model.cuda().half()
@@ -24,7 +23,6 @@ class Generator(object):
         self.model = model
         self.seq_len = seq_len
         self.top_p = top_p
-        self.temperature = temperature
         self.use_gpu = use_gpu
 
     def _sample_from_top_p(self, probs: np.ndarray
@@ -60,7 +58,7 @@ class Generator(object):
         if self.use_gpu:
             logits = logits.cpu().float()
 
-        probs = (logits[:, -1, :] / self.temperature).softmax(axis=-1).numpy()
+        probs = logits[:, -1, :].softmax(axis=-1).numpy()
         return probs, past
 
     def generate(self, context: str, samples: int = 20) -> Tuple[str, float]:

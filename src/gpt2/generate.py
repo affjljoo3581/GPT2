@@ -20,8 +20,7 @@ def _generate_sentence(args: argparse.Namespace):
 
     # Create integrated sentence generator.
     generator = Generator(vocab, tokenizer, model, seq_len=args.seq_len,
-                          top_p=args.top_p, temperature=args.temperature,
-                          use_gpu=args.use_gpu)
+                          top_p=args.top_p, use_gpu=args.use_gpu)
 
     # Restore trained GPT-2 parameters from checkpoint.
     ckpt = torch.load(args.checkpoint,
@@ -55,8 +54,6 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         help='increase rate of dimensionality in bottleneck')
     parser.add_argument('--top_p', default=0.92, type=float,
                         help='probability threshold for nucleus sampling.')
-    parser.add_argument('--temperature', default=0.8, type=float,
-                        help='scale factor of distributions')
     parser.add_argument('--samples', default=20, type=int,
                         help='number of generating samples')
     parser.add_argument('--use_gpu', action='store_true',
