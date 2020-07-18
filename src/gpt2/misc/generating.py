@@ -79,7 +79,7 @@ class Generator(object):
                     sentences[i].append(next_words[i])
                     log_probs[i] += np.log(next_probs[i])
 
-            current = next_words.unsqueeze(1)
+            current = [[w] for w in next_words]
 
         words = [self.tokenizer.decode(words) for words in sentences]
         return max(list(zip(words, log_probs)), key=lambda sample: sample[1])
