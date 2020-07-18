@@ -81,5 +81,6 @@ class Generator(object):
 
             current = [[w] for w in next_words]
 
-        words = [self.tokenizer.decode(words) for words in sentences]
+        words = [self.tokenizer.decode([self.vocab[w] for w in words])
+                 for words in sentences]
         return max(list(zip(words, log_probs)), key=lambda sample: sample[1])
