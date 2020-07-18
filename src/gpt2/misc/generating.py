@@ -38,7 +38,7 @@ class Generator(object):
         # Use gumbel-max trick to sample next tokens.
         probs += np.where(mask,
                           np.random.gumbel(size=probs.size),
-                          probs.full_like(-np.inf))
+                          np.full_like(probs, -np.inf))
         next_words = probs.argmax(axis=-1)
 
         return (np.random.choice(indices, p=probs / probs.sum()),
