@@ -30,7 +30,8 @@ class Generator(object):
     def _sample_from_top_p(self, probs: np.ndarray
                            ) -> Tuple[List[int], List[float]]:
         # Sort probabilities and indices.
-        indices, sorted_probs = np.argsort(probs)[::-1], np.sort(probs)[::-1]
+        indices, sorted_probs = np.argsort(probs)[:, ::-1], \
+                                np.sort(probs)[:, ::-1]
 
         # Create top-p mask.
         mask = sorted_probs.cumsum(axis=-1) < self.top_p
