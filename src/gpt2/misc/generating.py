@@ -27,21 +27,23 @@ class Generator(object):
         self.temperature = temperature
         self.use_gpu = use_gpu
 
-    def _sample_from_top_p(self, probs: np.ndarray) -> Tuple[int, float]:
+    def _sample_from_top_p(self, probs: np.ndarray
+                           ) -> Tuple[List[int], List[float]]:
         # Sort probabilities and indices.
-        indices, probs = np.argsort(probs)[::-1], np.sort(probs)[::-1]
+        indices, sorted_probs = np.argsort(probs)[::-1], np.sort(probs)[::-1]
 
         # Create top-p mask.
-        mask = probs.cumsum(axis=-1) < self.top_p
+        mask = sorted_probs.cumsum(axis=-1) < self.top_p
         mask[:, 0] = True
 
         # Use gumbel-max trick to sample next tokens.
-        probs += np.where(mask,
-                          np.random.gumbel(size=probs.shape),
-                          np.full_like(probs, -np.inf))
-        next_words = probs.argmax(axis=-1)
+        sorted_probs += np.where(mask,
+                                 np.random.gumbel(size=sorted_probs.shape),
+                                 np.full_like(sorted_probs, -np.inf))
+        next_words = [indices[i, t]
+                      for i, t in enumerate(sorted_probs.argmax(axis=-1))]
 
-        return next_words, probs[next_words]
+        return next_words, [probs[i, t] for i, t in enumerate(next_words)]
 
     def _predict_probs(self,
                        words: List[List[int]],
