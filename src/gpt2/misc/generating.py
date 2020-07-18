@@ -32,7 +32,7 @@ class Generator(object):
         indices, probs = np.argsort(probs)[::-1], np.sort(probs)[::-1]
 
         # Create top-p mask.
-        mask = probs.cumsum() < self.top_p
+        mask = probs.cumsum(axis=-1) < self.top_p
         mask[:, 0] = True
 
         # Use gumbel-max trick to sample next tokens.
