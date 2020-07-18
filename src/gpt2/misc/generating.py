@@ -24,23 +24,24 @@ class Generator(object):
         self.top_p = top_p
         self.use_gpu = use_gpu
 
-    def _sample_from_top_p(self, logits: torch.Tensor
+    def _sample_from_top_p(self, probs: torch.Tensor
                            ) -> Tuple[List[int], List[float]]:
         # Sort the logits and use only top-p tokens.
-        sorted_logits, indices = logits.sort(descending=True)
-        sorted_logits.masked_fill_(
-            sorted_logits.softmax(-1).cumsum(-1) > self.top_p,
-            value=-1e10)
+        probs, indices = probs.sort(descending=True)
 
-        # Use gumbel-max trick to sample from logits.
-        gumbels = -torch.empty_like(sorted_logits).exponential_().log()
-        return indices[(sorted_logits + gumbels).argmax()]
+        mask = probs.cumsum(-1) > self.top_p
+        mask[0] = False
+
+        probs.masked_fill_(mask, value=-1e10)
+
+        # Sample from filtered distribution.
+        return indices[probs.multinomial(1)[0]]
 
     @torch.no_grad()
-    def _predict_logits(self,
-                        words: List[int],
-                        past: Optional[List[Past]] = None
-                        ) -> Tuple[torch.Tensor, List[Past]]:
+    def _predict_probs(self,
+                       words: List[int],
+                       past: Optional[List[Past]] = None
+                       ) -> Tuple[torch.Tensor, List[Past]]:
         x = torch.tensor(words,
                          dtype=torch.long,
                          device='cuda' if self.use_gpu else 'cpu')
@@ -50,7 +51,7 @@ class Generator(object):
         if self.use_gpu:
             logits = logits.cpu().float()
 
-        return logits[-1, :], past
+        return logits[-1, :].softmax(-1), past
 
     def generate(self, context: str) -> str:
         words = [self.vocab[t] for t in self.tokenizer.encode(context)]
@@ -59,8 +60,8 @@ class Generator(object):
         current, past = words, None
         while len(words) < self.seq_len:
             # Predict next-word distribution and sample from it.
-            logits, past = self._predict_logits(current, past)
-            next_word = self._sample_from_top_p(logits)
+            probs, past = self._predict_probs(current, past)
+            next_word = self._sample_from_top_p(probs)
 
             # Add sampled word to the sequence and change the current
             # subsequence to the sampled word.
