@@ -93,24 +93,24 @@ def apply(trainer: Trainer):
 
     # Prevent saving the training states except for the master gpu process.
     if _current_idx != 0:
-        trainer.save = lambda *args, **kwargs: None
+        trainer.save_model = lambda *args, **kwargs: None
         trainer.preserve = lambda *args, **kwargs: None
 
     # Patch to save `trainer.model.module` rather than `trainer.model` because
     # parameters in the model are wrapped with `DistributedDataParallel`
     # module.
     if _current_idx == 0:
-        def _modified_trainer_save(checkpoint: str):
+        def _modified_trainer_save_model(checkpoint: str):
             # Replace to the original model.
             container = trainer.model
             trainer.model = trainer.model.module
 
             # Save the model's parameters.
-            _old_trainer_save(checkpoint)
+            _old_trainer_save_model(checkpoint)
 
             # After saving parameters, restore to the `DistributedDataParallel`
             # module.
             trainer.model = container
 
-        _old_trainer_save = trainer.save
-        trainer.save = _modified_trainer_save
+        _old_trainer_save_model = trainer.save_model
+        trainer.save_model = _modified_trainer_save_model
