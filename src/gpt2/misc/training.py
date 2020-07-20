@@ -27,7 +27,7 @@ class Trainer(Recordable, Preservable):
         self.train_objective = train_objective
         self.eval_objective = eval_objective
 
-    def save(self, checkpoint: str):
+    def save_model(self, checkpoint: str):
         torch.save({'metrics': self.metrics,
                     'model': self.model.cpu().state_dict()}, checkpoint)
 
