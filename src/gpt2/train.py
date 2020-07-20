@@ -1,4 +1,5 @@
 import argparse
+import torch
 import torch.optim as optim
 import torch.multiprocessing as mp
 from .utils import amp
@@ -20,7 +21,7 @@ def _main_worker(rank: int, args: argparse.Namespace):
     if args.gpus:
         distributing.initialize(idx=rank, gpus=args.gpus)
 
-    # Prepare datasets, model and its objective.
+    # Prepare vocabulary and datasets.
     vocab = Vocab(vocab_path=args.vocab)
     train_dataset = TokenizedCorpusDataset(vocab,
                                            corpus_path=args.train_corpus,
@@ -29,18 +30,26 @@ def _main_worker(rank: int, args: argparse.Namespace):
                                           corpus_path=args.eval_corpus,
                                           seq_len=args.seq_len)
 
+    # Create transformer model and initialize.
     model = Transformer(layers=args.layers, pad_idx=vocab.pad_idx,
                         words=len(vocab), seq_len=args.seq_len,
                         heads=args.heads, dims=args.dims, rate=args.rate,
-                        dropout=args.dropout, bidirectional=False).cuda()
+                        dropout=args.dropout, bidirectional=False)
+    if args.init_from:
+        ckpt = torch.load(args.init_from, map_location='cpu')
+        model.load_state_dict(ckpt['model'])
+
+    model.cuda()
+
+    # Create objective, optimizer, learning rate scheduler.
     objective = LMObjective(model, pad_idx=vocab.pad_idx)
 
-    # Create optimizer, learning rate scheduler and integrated trainer.
     optimizer = fusing.Adam(
         model.parameters(), lr=args.base_lr, weight_decay=args.wd_rate)
     scheduler = optim.lr_scheduler.LambdaLR(
         optimizer, lambda step: 1 - step / args.iterations)
 
+    # Prepare an integrated trainer.
     trainer = Trainer(model, optimizer, scheduler, train_dataset, eval_dataset,
                       train_objective=objective, eval_objective=objective)
 
@@ -53,8 +62,8 @@ def _main_worker(rank: int, args: argparse.Namespace):
         distributing.apply(trainer)
 
     # Restore training states from checkpoint.
-    if args.restore:
-        trainer.restore(args.restore)
+    if args.resume:
+        trainer.restore(args.checkpoint)
 
     # Start training the model.
     progressbar = progress.ProgressBar(
@@ -73,7 +82,7 @@ def _main_worker(rank: int, args: argparse.Namespace):
             trainer.preserve(args.checkpoint)
 
     # Save trained model and recorded metrics.
-    trainer.save(args.checkpoint)
+    trainer.save_model(args.checkpoint)
 
 
 def _train_gpt2_model(args: argparse.Namespace):
@@ -92,14 +101,14 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         help='corpus file for evaluation')
     parser.add_argument('--vocab', required=True,
                         help='vocabulary file path')
-    parser.add_argument('--restore', default=None,
-                        help='restore from the given checkpoint file')
+
+    parser.add_argument('--init_from', default=None,
+                        help='initialize weights from trained model')
+    parser.add_argument('--resume', action='store_true',
+                        help='resume training from the given checkpoint file')
     parser.add_argument('--checkpoint', default='ckpt',
                         help='checkpoint file path')
-    parser.add_argument('--batch_train', default=64, type=int,
-                        help='batch size for training')
-    parser.add_argument('--batch_eval', default=64, type=int,
-                        help='batch size for evaluation')
+
     parser.add_argument('--seq_len', default=64, type=int,
                         help='maximum length of sequences')
     parser.add_argument('--layers', default=12, type=int,
@@ -112,16 +121,23 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         help='increase rate of dimensionality in bottleneck')
     parser.add_argument('--dropout', default=0.1, type=float,
                         help='dropout rate')
+
+    parser.add_argument('--batch_train', default=64, type=int,
+                        help='batch size for training')
+    parser.add_argument('--batch_eval', default=64, type=int,
+                        help='batch size for evaluation')
     parser.add_argument('--base_lr', default=1e-4, type=float,
                         help='maximum learning rate')
     parser.add_argument('--wd_rate', default=1e-2, type=float,
                         help='weight decay rate')
+
     parser.add_argument('--iterations', default=100000, type=int,
                         help='number of training iterations')
     parser.add_argument('--eval_iters', default=500, type=int,
                         help='period to evaluate')
     parser.add_argument('--save_iters', default=1000, type=int,
                         help='period to save training state')
+
     parser.add_argument('--gpus', default=None, type=int, nargs='*',
                         help='gpu ids for training')
     parser.add_argument('--use_amp', action='store_true',
