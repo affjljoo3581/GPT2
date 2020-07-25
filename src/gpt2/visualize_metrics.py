@@ -3,10 +3,10 @@ import argparse
 import matplotlib.pyplot as plt
 
 
-def _visualize_metrics(args: argparse.Namespace):
-    ckpt = torch.load(args.checkpoint)
-    eval_steps, eval_metrics = zip(*ckpt['metrics']['eval/loss'])
-    train_steps, train_metrics = zip(*ckpt['metrics']['train/loss'])
+def visualize_recorded_metrics(args: argparse.Namespace):
+    metrics = torch.load(args.model)['metrics']
+    eval_steps, eval_metrics = zip(*metrics['eval/loss'])
+    train_steps, train_metrics = zip(*metrics['train/loss'])
 
     plt.figure(figsize=(12, 8))
 
@@ -67,13 +67,13 @@ def _visualize_metrics(args: argparse.Namespace):
 
 def add_subparser(subparsers: argparse._SubParsersAction):
     parser = subparsers.add_parser(
-        'visualize', help='visualize metrics for training and evaluation')
+        'visualize', help='visualize metrics recorded during training')
 
     parser.add_argument('--figure', default='figure.png',
-                        help='figure image file path to save plot')
-    parser.add_argument('--checkpoint', required=True,
-                        help='checkpoint file path')
+                        help='output figure image file path')
+    parser.add_argument('--model', required=True,
+                        help='trained GPT-2 model file path')
     parser.add_argument('--interactive', action='store_true',
                         help='show interactive plot window')
 
-    parser.set_defaults(func=_visualize_metrics)
+    parser.set_defaults(func=visualize_recorded_metrics)
