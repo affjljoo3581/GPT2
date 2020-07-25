@@ -1,5 +1,5 @@
 import argparse
-from . import train, generate, visualize
+from gpt2 import train_model, generate_sentences, visualize_metrics
 
 
 if __name__ == '__main__':
@@ -8,15 +8,9 @@ if __name__ == '__main__':
         description='PyTorch implementation of OpenAI GPT-2')
     subparsers = parser.add_subparsers(dest='subcommands', required=True)
 
-    # Add `train` keyword to the parser.
-    train.add_subparser(subparsers)
+    train_model.add_subparser(subparsers)
+    generate_sentences.add_subparser(subparsers)
+    visualize_metrics.add_subparser(subparsers)
 
-    # Add `generate` keyword to the parser.
-    generate.add_subparser(subparsers)
-
-    # Add `visualize` keyword to the parser.
-    visualize.add_subparser(subparsers)
-
-    # Parse passed arguments and call corresponding function.
     args = parser.parse_args()
     args.func(args)
