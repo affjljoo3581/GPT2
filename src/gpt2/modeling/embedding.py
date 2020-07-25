@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from typing import Dict, Any
 
 
 class PositionalEmbedding(nn.Embedding):
@@ -14,10 +15,11 @@ class PositionalEmbedding(nn.Embedding):
     def reset_parameters(self):
         nn.init.normal_(self.weight, std=0.02)
 
-    def load_state_dict(self, state_dict):
+    def load_state_dict(self, state_dict: Dict[str, Any]):
         weight = state_dict['weight']
 
-        # Slice or pad the given embedding weights.
+        # Reduce or expand the positional embedding matrix to increase or
+        # decrease the total sequence length.
         if weight.size(0) < self.num_embeddings:
             weight = torch.cat((weight, self.weight[weight.size(0):]), dim=0)
         elif weight.size(0) > self.num_embeddings:
@@ -27,12 +29,10 @@ class PositionalEmbedding(nn.Embedding):
         super().load_state_dict(state_dict)
 
     def forward(self, x: torch.Tensor, offset: int = 0) -> torch.Tensor:
-        # Create position indices tensor.
         position = torch.arange(offset, offset + x.size(-1),
                                 dtype=torch.long, device=x.device)
         position = position.view((1,) * (x.ndim - 1) + (-1,)).expand_as(x)
 
-        # Embed the position indices to vectors.
         return super().forward(position)
 
 
@@ -55,5 +55,5 @@ class TokenEmbedding(nn.Embedding):
                 transposed: bool = False) -> torch.Tensor:
         if transposed:
             return torch.matmul(x, self.weight.transpose(0, 1))
-
-        return super().forward(x)
+        else:
+            return super().forward(x)

@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 from typing import Optional, Tuple
 
-# Define new type `Past` which is a tuple of two `torch.Tensor`.
 Past = Tuple[torch.Tensor, torch.Tensor]
 
 
@@ -28,15 +27,12 @@ class BaseAttention(nn.Module):
                 k: torch.Tensor,
                 v: torch.Tensor,
                 mask: Optional[torch.Tensor] = None) -> torch.Tensor:
-        # Calculate attention weight logits.
         x = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(k.size(-1))
+
         if mask is not None:
             x += mask.type_as(x) * x.new_tensor(-1e4)
-
-        # Apply softmax and dropout layer.
         x = self.dropout(x.softmax(-1))
 
-        # Return weighted sum of values.
         return torch.matmul(x, v)
 
 
@@ -61,7 +57,7 @@ class MultiHeadAttention(BaseAttention):
                 k: torch.Tensor,
                 v: torch.Tensor,
                 mask: Optional[torch.Tensor] = None) -> torch.Tensor:
-        # Split each input tensor into multi-heads.
+        # Split the tensors to multi-heads.
         q = q.view(q.size()[:-1] + (self.heads, q.size(-1) // self.heads))
         k = k.view(k.size()[:-1] + (self.heads, k.size(-1) // self.heads))
         v = v.view(v.size()[:-1] + (self.heads, v.size(-1) // self.heads))
@@ -70,11 +66,10 @@ class MultiHeadAttention(BaseAttention):
         k = k.transpose(-3, -2)
         v = v.transpose(-3, -2)
 
-        # Add new axis to the masking tensor.
         if mask is not None:
             mask = mask.unsqueeze(-3)
 
-        # Calculate attentions and merge multi-heads.
+        # Calculate multi-headed attentions and merge them into one.
         return (super().forward(q, k, v, mask)
                 .transpose(-3, -2)
                 .contiguous()
@@ -110,17 +105,12 @@ class AttentionLayer(nn.Module):
                 past: Optional[Past] = None,
                 mask: Optional[torch.Tensor] = None
                 ) -> Tuple[torch.Tensor, Past]:
-        # Project input tensors.
-        q = self.proj_q(q)
-        k = self.proj_k(k)
-        v = self.proj_v(v)
+        q, k, v = self.proj_q(q), self.proj_k(k), self.proj_v(v)
 
-        # Reuse previously calculated keys and values.
+        # Reuse attention keys and values by concatenating to the current ones.
         if past is not None:
             k = torch.cat((past[0], k), dim=-2)
             v = torch.cat((past[1], v), dim=-2)
 
-        # Calculate multi-headed attention and apply linear projection.
         x = self.linear(self.attn(q, k, v, mask))
-
         return x, (k, v)

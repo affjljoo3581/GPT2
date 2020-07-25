@@ -1,10 +1,9 @@
 import torch
 import torch.nn as nn
-from ..utils.fusing import LayerNorm
-from .masking import PadMasking, FutureMasking
-from .embedding import PositionalEmbedding, TokenEmbedding
-from .attention import AttentionLayer, Past
-from .feedforward import PositionwiseFeedForward
+from gpt2.utils.fusing import LayerNorm
+from gpt2.modeling import (PadMasking, FutureMasking, AttentionLayer, Past,
+                           PositionalEmbedding, TokenEmbedding,
+                           PositionwiseFeedForward)
 from typing import Optional, Tuple, List
 
 
@@ -34,7 +33,8 @@ class TransformerLayer(nn.Module):
     def forward(self,
                 x: torch.Tensor,
                 past: Optional[Past] = None,
-                mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+                mask: Optional[torch.Tensor] = None
+                ) -> Tuple[torch.Tensor, Past]:
         # Layer normalizations are performed before the layers respectively.
         a = self.ln_attn(x)
         a, past = self.attn(a, a, a, past, mask)
@@ -84,7 +84,6 @@ class Transformer(nn.Module):
                 x: torch.Tensor,
                 past: Optional[List[Past]] = None
                 ) -> Tuple[torch.Tensor, List[Past]]:
-        # The past key-value pairs imply that input sequences are shifted.
         offset = past[0][0].size(-2) if past is not None else 0
 
         # Create masking tensor.
@@ -92,7 +91,7 @@ class Transformer(nn.Module):
         if not self.bidirectional:
             mask = mask + self.future_masking(x, offset)
 
-        # Create embedding vectors with dropout layer.
+        # Use token embedding and positional embedding layers.
         x = self.token_embedding(x) + self.positional_embedding(x, offset)
         x = self.dropout_embedding(x)
 
@@ -102,8 +101,6 @@ class Transformer(nn.Module):
             x, p = transformer(x, past[i] if past is not None else None, mask)
             present.append(p)
 
-        # Project representations to vocabulary space.
         x = self.ln_head(x)
         x = self.token_embedding(x, transposed=True)
-
         return x, present
