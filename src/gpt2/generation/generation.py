@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
-from ..data.vocabulary import Vocab
-from ..data.tokenization import Tokenizer
-from ..modeling.attention import Past
+from gpt2.data import Vocab
+from gpt2.modeling import Past
+from gpt2.generation import Tokenizer
 from typing import Tuple, List, Optional
 
 
@@ -12,7 +12,7 @@ class Generator(object):
                  tokenizer: Tokenizer,
                  model: nn.Module,
                  seq_len: int,
-                 top_p: float = 0.92,
+                 top_p: float = 0.85,
                  use_gpu: bool = False):
         if use_gpu:
             model.cuda().half()
@@ -22,16 +22,15 @@ class Generator(object):
         self.model = model
         self.seq_len = seq_len
         self.top_p = top_p
+        self.top_p = top_p
         self.use_gpu = use_gpu
 
     def _sample_from_top_p(self, probs: torch.Tensor
                            ) -> Tuple[List[int], List[float]]:
-        # Sort the logits and use only top-p tokens.
         probs, indices = probs.sort(descending=True)
 
         mask = probs.cumsum(-1) > self.top_p
         mask[0] = False
-
         probs.masked_fill_(mask, 0)
 
         # Sample from filtered distribution.
@@ -47,7 +46,7 @@ class Generator(object):
                          device='cuda' if self.use_gpu else 'cpu')
         logits, past = self.model(x, past)
 
-        # If tokens are predicted on GPU, move the calculated logits to CPU.
+        # If tokens are predicted on GPU, copy the logits tensor to CPU.
         if self.use_gpu:
             logits = logits.cpu().float()
 
@@ -59,12 +58,9 @@ class Generator(object):
 
         current, past = words, None
         while len(words) < self.seq_len:
-            # Predict next-word distribution and sample from it.
             probs, past = self._predict_probs(current, past)
             next_word = self._sample_from_top_p(probs)
 
-            # Add sampled word to the sequence and change the current
-            # subsequence to the sampled word.
             words.append(next_word)
             current = [next_word]
 
