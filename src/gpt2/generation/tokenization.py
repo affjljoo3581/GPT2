@@ -1,5 +1,5 @@
-from .vocabulary import Vocab
 import regex as re
+from gpt2.data import Vocab
 from typing import List
 
 _CHINESE_CHAR_RANGE = ('\u4e00-\u9fff\u3400-\u4dbf\U00020000-\U0002a6df'
@@ -12,10 +12,10 @@ _PUNCTUATION_RANGE = '\\p{P}\x21-\x2f\x3a-\x40\x5b-\x60\x7b-\x7e'
 class Tokenizer(object):
     def __init__(self,
                  vocab: Vocab,
-                 special_tokens: List[str] = [],
+                 additional_tokens: List[str] = [],
                  max_word_len: int = 100):
         self.vocab = vocab
-        self.special_tokens = special_tokens
+        self.additional_tokens = additional_tokens
         self.max_word_len = max_word_len
 
     def encode(self, text: str) -> List[str]:
@@ -35,8 +35,7 @@ class Tokenizer(object):
                                 .replace('\"\"', "\" \""))
 
     def _normalize(self, text: str) -> List[str]:
-        # Clear text by normalizing whitespace characters and removing control
-        # characters.
+        # Normalize whitespace characters and remove control characters.
         text = ' '.join(re.sub('[\x00\uFFFD\\p{C}]', '', t)
                         for t in text.split())
 
@@ -45,19 +44,16 @@ class Tokenizer(object):
 
         normalized = []
         for t in text.split():
-            if t in self.special_tokens:
-                # Do not split special tokens.
+            if t in self.additional_tokens:
                 normalized.append(t)
             else:
-                # Prevent treating tokens with punctuations.
+                # Prevent from treating tokens with punctuations.
                 normalized += re.split(f'([{_PUNCTUATION_RANGE}])', t.lower())
-
         return ' '.join(normalized).split()
 
     def _tokenize(self, text: str) -> List[str]:
         subwords = []
         for token in text.split():
-            # Skip too long tokens.
             if len(token) > self.max_word_len:
                 subwords.append(self.vocab.unk_token)
                 continue
@@ -65,7 +61,6 @@ class Tokenizer(object):
             children = []
             while token and token != '##':
                 current, token = token, ''
-
                 while current and current != '##':
                     # If subword is in vocabulary, add to list and re-calibrate
                     # the target token.
@@ -75,11 +70,11 @@ class Tokenizer(object):
                         break
 
                     # If subword is not in vocabulary, reduce the search range
-                    # of subword and test it again.
+                    # and test it again.
                     current, token = current[:-1], current[-1] + token
 
                 # Process current token as `unknown` since there is no any
-                # proper tokenization (greedy).
+                # proper tokenization (in greedy).
                 if not current:
                     children, token = None, None
             subwords += children or [self.vocab.unk_token]
