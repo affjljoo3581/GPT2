@@ -106,7 +106,7 @@ class Trainer(object):
                                  scheduler),
                 scope='train')
 
-            if (step + 1) % self.config.eval_step == 0:
+            if (step + 1) % self.config.eval_steps == 0:
                 recorder.record(
                     self._eval_step(rank, eval_dataset, model), scope='eval')
                 recorder.stamp(step)
