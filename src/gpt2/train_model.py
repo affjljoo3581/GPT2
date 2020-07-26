@@ -43,7 +43,7 @@ class GPT2TrainingSpec(TrainingSpec):
 
     def construct_model(self) -> nn.Module:
         return Transformer(layers=self.layers, pad_idx=self.vocab.pad_idx,
-                           words=self.vocab.words, seq_len=self.seq_len,
+                           words=len(self.vocab), seq_len=self.seq_len,
                            heads=self.heads, dims=self.dims, rate=self.rate,
                            dropout=self.dropout, bidirectional=False)
 
