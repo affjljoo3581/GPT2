@@ -119,7 +119,7 @@ class Trainer(object):
                         recorder.format(self.config.log_format))
 
             # Save training states to checkpoint file.
-            if (step + 1) % self.config.save_steps == 0:
+            if rank == 0 and (step + 1) % self.config.save_steps == 0:
                 ckpt = {'step': step,
                         'recorder': recorder,
                         'model': model.state_dict(),
@@ -145,9 +145,10 @@ class Trainer(object):
             model = model.module
 
         # Save trained model weights and metrics recorded during the training.
-        torch.save({'model': model.cpu().state_dict(),
-                    'metrics': recorder.metrics},
-                   self.config.save_model_path)
+        if rank == 0:
+            torch.save({'model': model.cpu().state_dict(),
+                        'metrics': recorder.metrics},
+                       self.config.save_model_path)
 
     def _train_step(self,
                     rank: int,
