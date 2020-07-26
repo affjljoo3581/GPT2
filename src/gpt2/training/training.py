@@ -133,6 +133,11 @@ class Trainer(object):
 
                 torch.save(ckpt, self.config.save_checkpoint_path)
 
+                # Because the checkpoint data allocates quite a lot of GPU
+                # memories, we need to free the memories explicitly.
+                del ckpt
+                torch.cuda.empty_cache()
+
         # Since the model is wrapped with `DistributedDataParallel` class in
         # distributed training environment, the original model can be accessed
         # by `module` attribute.
