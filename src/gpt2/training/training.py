@@ -128,7 +128,7 @@ class Trainer(object):
                         'train_dataset': train_dataset.where(),
                         'eval_dataset': eval_dataset.where()}
 
-                if self.use_amp:
+                if self.config.use_amp:
                     ckpt['amp'] = amp.state_dict()
 
                 torch.save(ckpt, self.config.save_checkpoint_path)
