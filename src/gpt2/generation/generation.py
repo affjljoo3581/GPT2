@@ -25,8 +25,7 @@ class Generator(object):
         self.top_p = top_p
         self.use_gpu = use_gpu
 
-    def _sample_from_top_p(self, probs: torch.Tensor
-                           ) -> Tuple[List[int], List[float]]:
+    def _sample_from_top_p(self, probs: torch.Tensor) -> int:
         probs, indices = probs.sort(descending=True)
 
         mask = probs.cumsum(-1) > self.top_p
