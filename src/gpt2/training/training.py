@@ -13,6 +13,9 @@ try:
 except ModuleNotFoundError:
     pass
 
+import warnings
+warnings.filterwarnings(action='ignore')
+
 
 class Trainer(object):
     def __init__(self, spec: TrainingSpec, config: TrainConfig):
