@@ -59,12 +59,14 @@ class GPT2TrainingSpec(TrainingSpec):
     def train_objective(self, data: Dict[str, torch.Tensor], model: nn.Module
                         ) -> Dict[str, torch.Tensor]:
         logits, _ = model(data['input'], past=None)
-        return self.criterion(logits.transpose(1, 2), data['output'])
+        loss = self.criterion(logits.transpose(1, 2), data['output'])
+        return {'loss': loss}
 
     def eval_objective(self, data: Dict[str, torch.Tensor], model: nn.Module
                        ) -> Dict[str, torch.Tensor]:
         logits, _ = model(data['input'], past=None)
-        return self.criterion(logits.transpose(1, 2), data['output'])
+        loss = self.criterion(logits.transpose(1, 2), data['output'])
+        return {'loss': loss}
 
 
 def train_gpt2_model(args: argparse.Namespace):
