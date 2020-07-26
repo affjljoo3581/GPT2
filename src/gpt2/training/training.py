@@ -135,6 +135,7 @@ class Trainer(object):
 
                 # Because the checkpoint data allocates quite a lot of GPU
                 # memories, we need to free the memories explicitly.
+                del ckpt
                 torch.cuda.empty_cache()
 
         # Since the model is wrapped with `DistributedDataParallel` class in
