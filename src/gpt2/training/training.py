@@ -82,7 +82,7 @@ class Trainer(object):
             scheduler.load_state_dict(ckpt['scheduler'])
 
             train_dataset.assign(ckpt['train_dataset'])
-            eval_dataset.assing(ckpt['eval_dataset'])
+            eval_dataset.assign(ckpt['eval_dataset'])
 
             if self.config.use_amp:
                 amp.load_state_dict(ckpt['amp'])
