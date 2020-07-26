@@ -80,7 +80,8 @@ def train_gpt2_model(args: argparse.Namespace):
         save_steps=args.save_steps, save_model_path=args.save_model_path,
         save_checkpoint_path=args.save_checkpoint_path,
         description='Train GPT-2 model',
-        log_format='train/loss: {train_loss:.4f}, eval/loss: {eval_loss:.4f}')
+        log_format='train/loss: {train_loss:.4f}, eval/loss: {eval_loss:.4f}',
+        use_amp=args.use_amp, gpus=args.gpus)
 
     Trainer(spec, config).train(from_checkpoint=args.from_checkpoint,
                                 from_pretrained=args.from_pretrained)
