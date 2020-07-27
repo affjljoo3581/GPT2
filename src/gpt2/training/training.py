@@ -98,10 +98,10 @@ class Trainer(object):
             training_iters = tqdm.trange(self.config.total_steps,
                                          desc=self.config.description,
                                          dynamic_ncols=True)
-            training_iters.update(start_step)
+            training_iters.update(start_step + 1)
         else:
             # In other processes, use simple iterator rather than tqdm one.
-            training_iters = range(start_step, self.config.total_steps)
+            training_iters = range(start_step + 1, self.config.total_steps)
 
         for step in training_iters:
             recorder.record(
