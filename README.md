@@ -100,7 +100,7 @@ The detail of command-line usage is as follows:
       --gpus GPUS           number of gpu devices to use in training
 
 
-## Using [apex](https://github.com/NVIDIA/apex) for training
+## Using [apex](https://github.com/NVIDIA/apex) in training
 While training, you can use **NVIDIA apex** to use fused CUDA layers and mixed-precision optimization. The option `--use_amp` enables **automatic mixed precision** in training. Before using these performance boosting, you should install **NVIDIA apex** library by following [the repository](https://github.com/NVIDIA/apex), or run belows:
 
     $ git clone https://github.com/NVIDIA/apex
