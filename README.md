@@ -6,6 +6,18 @@
 
 [Language Models are Unsupervised Multitask Learners](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf)
 
+## Table of contents
+
+* [Introduction](#introduction)
+* [Dependencies](#dependencies)
+* [Usage](#usage)
+  * [How to train?](#how-to-train?)
+  * [Generate sentences!](#generate-sentences!)
+  * [Visualization](#visualization)
+* [Using apex in training](#using-apex-for-training)
+* [License](#license)
+
+
 ## Introduction
 This project is a PyTorch implementation of OpenAI GPT-2 model. It provides model training, sentence generation, and metrics visualization. It is considered to be both understandable and optimized. We designed the codes to be comprehensible. Also we use [some techniques](#using-apex-for-training) to improve performance.
 
@@ -16,7 +28,9 @@ This project is a PyTorch implementation of OpenAI GPT-2 model. It provides mode
 * numpy
 * matplotlib
 
-## How to train?
+## Usage
+
+### How to train?
 Before training GPT-2 model, corpus dataset should be prepared. We recommend to build your own corpus by using [Expanda](https://github.com/affjljoo3581/Expanda). Instead, training module requires tokenized training and evaluation datasets with their vocabulary file.
 
 After preparing datasets, you can train GPT-2 by using as follows:
@@ -99,17 +113,7 @@ The detail of command-line usage is as follows:
       --use_amp             use automatic mixed-precision in training
       --gpus GPUS           number of gpu devices to use in training
 
-
-## Using [apex](https://github.com/NVIDIA/apex) in training
-While training, you can use **NVIDIA apex** to use fused CUDA layers and mixed-precision optimization. The option `--use_amp` enables **automatic mixed precision** in training. Before using these performance boosting, you should install **NVIDIA apex** library by following [the repository](https://github.com/NVIDIA/apex), or run belows:
-
-    $ git clone https://github.com/NVIDIA/apex
-    $ cd apex
-    $ pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
-
-If you cannot install the library or your GPU device does not support fast mixed-precision training (precisely, GPU should support mixed-precision acceleration through [Tensor Cores](https://developer.nvidia.com/tensor-cores)), you can train the model in single-precision mode. Mixed-precision training is an option. In that case, you can still use fused CUDA layers such as Adam optimizer and layer normalization in training.
-
-## Generate sentences!
+### Generate sentences!
 After training GPT-2, you can generate sentences with your trained model in interactive mode.
 
     $ python -m gpt2 generate --vocab_path      build/vocab.txt \
@@ -140,7 +144,7 @@ The detail of command-line usage is as follows:
       --top_p TOP_P         probability threshold for nucleus sampling
       --use_gpu             use gpu device in inferencing
 
-## Visualization
+### Visualization
 Moreover, you can also analyse training loss graph by visualizing recorded metrics.
 
     $ python -m gpt2 visualize --model model.pth --interactive
@@ -148,3 +152,15 @@ Moreover, you can also analyse training loss graph by visualizing recorded metri
 The example figure is as bellow:
 
 ![figure](./example-figure.png)
+
+## Using [apex](https://github.com/NVIDIA/apex) in training
+While training, you can use **NVIDIA apex** to use fused CUDA layers and mixed-precision optimization. The option `--use_amp` enables **automatic mixed precision** in training. Before using these performance boosting, you should install **NVIDIA apex** library by following [the repository](https://github.com/NVIDIA/apex), or run belows:
+
+    $ git clone https://github.com/NVIDIA/apex
+    $ cd apex
+    $ pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+
+If you cannot install the library or your GPU device does not support fast mixed-precision training (precisely, GPU should support mixed-precision acceleration through [Tensor Cores](https://developer.nvidia.com/tensor-cores)), you can train the model in single-precision mode. Mixed-precision training is an option. In that case, you can still use fused CUDA layers such as Adam optimizer and layer normalization in training.
+
+## License
+This project is [Apache-2.0 Licensed](./LICENSE)
