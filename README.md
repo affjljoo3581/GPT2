@@ -11,15 +11,15 @@
 * [Introduction](#introduction)
 * [Dependencies](#dependencies)
 * [Usage](#usage)
-  * [How to train?](#how%20to%20train?)
-  * [Generate sentences!](#generate%20sentences!)
-  * [Visualization](#visualization)
-* [Using apex in training](#using%20apex%20for%20training)
+  * [How to train?](#how-to-train?)
+  * [Generate sentences!](#generate-sentences!)
+  * [Visualize metrics](#visualize-metrics)
+* [Using apex in training](#using-apex-for-training)
 * [License](#license)
 
 
 ## Introduction
-This project is a PyTorch implementation of OpenAI GPT-2 model. It provides model training, sentence generation, and metrics visualization. It is considered to be both understandable and optimized. We designed the codes to be comprehensible. Also we use [some techniques](#using%20apex%20for%20training) to improve performance.
+This project is a PyTorch implementation of OpenAI GPT-2 model. It provides model training, sentence generation, and metrics visualization. It is considered to be both understandable and optimized. We designed the codes to be comprehensible. Also we use [some techniques](#using-apex-for-training) to improve performance.
 
 ## Dependencies
 * regex
@@ -144,7 +144,7 @@ The detail of command-line usage is as follows:
       --top_p TOP_P         probability threshold for nucleus sampling
       --use_gpu             use gpu device in inferencing
 
-### Visualization
+### Visualize metrics
 Moreover, you can also analyse training loss graph by visualizing recorded metrics.
 
     $ python -m gpt2 visualize --model model.pth --interactive
