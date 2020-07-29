@@ -11,15 +11,15 @@
 * [Introduction](#introduction)
 * [Dependencies](#dependencies)
 * [Usage](#usage)
-  * [How to train?](#how-to-train?)
-  * [Generate sentences!](#generate-sentences!)
+  * [How to train?](#how%20to%20train?)
+  * [Generate sentences!](#generate%20sentences!)
   * [Visualization](#visualization)
-* [Using apex in training](#using-apex-for-training)
+* [Using apex in training](#using%20apex%20for%20training)
 * [License](#license)
 
 
 ## Introduction
-This project is a PyTorch implementation of OpenAI GPT-2 model. It provides model training, sentence generation, and metrics visualization. It is considered to be both understandable and optimized. We designed the codes to be comprehensible. Also we use [some techniques](#using-apex-for-training) to improve performance.
+This project is a PyTorch implementation of OpenAI GPT-2 model. It provides model training, sentence generation, and metrics visualization. It is considered to be both understandable and optimized. We designed the codes to be comprehensible. Also we use [some techniques](#using%20apex%20for%20training) to improve performance.
 
 ## Dependencies
 * regex
