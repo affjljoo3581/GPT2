@@ -163,4 +163,4 @@ While training, you can use **NVIDIA apex** to use fused CUDA layers and mixed-p
 If you cannot install the library or your GPU device does not support fast mixed-precision training (precisely, GPU should support mixed-precision acceleration through [Tensor Cores](https://developer.nvidia.com/tensor-cores)), you can train the model in single-precision mode. Mixed-precision training is an option. In that case, you can still use fused CUDA layers such as Adam optimizer and layer normalization in training.
 
 ## License
-This project is [Apache-2.0 Licensed](./LICENSE)
+This project is [Apache-2.0 Licensed](./LICENSE).
