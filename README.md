@@ -1,6 +1,7 @@
 # GPT-2 PyTorch Implementation
 
 ![build](https://github.com/affjljoo3581/GPT2/workflows/build/badge.svg)
+![GitHub](https://img.shields.io/github/license/affjljoo3581/GPT2)
 [![codecov](https://codecov.io/gh/affjljoo3581/GPT2/branch/master/graph/badge.svg)](https://codecov.io/gh/affjljoo3581/GPT2)
 [![CodeFactor](https://www.codefactor.io/repository/github/affjljoo3581/gpt2/badge)](https://www.codefactor.io/repository/github/affjljoo3581/gpt2)
 
