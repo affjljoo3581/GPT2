@@ -1,62 +1,129 @@
+import math
 import torch
 import argparse
 import matplotlib.pyplot as plt
+from typing import List
 
 
-def visualize_recorded_metrics(args: argparse.Namespace):
-    metrics = torch.load(args.model)['metrics']
-    eval_steps, eval_metrics = zip(*metrics['eval/loss'])
-    train_steps, train_metrics = zip(*metrics['train/loss'])
+def _plot_entire_metrics_graph(train_steps: List[int],
+                               train_losses: List[float],
+                               eval_steps: List[int],
+                               eval_losses: List[float]):
+    plt.plot(train_steps, train_losses,
+             label='train', color='#4dacfa', linewidth=2, zorder=10)
+    plt.plot(eval_steps, eval_losses,
+             label='evaluate', color='#ff6e54', linewidth=2, zorder=0)
 
-    plt.figure(figsize=(12, 8))
-
-    plt.subplot(221)
-    plt.plot(eval_steps, eval_metrics, label='evaluation')
-    plt.plot(train_steps, train_metrics, label='training')
     plt.title('Cross-Entropy Loss')
     plt.xlabel('Iterations')
     plt.ylabel('Loss')
-    plt.legend(loc='top right')
 
-    plt.subplot(222)
-    plt.plot(eval_steps, eval_metrics, label='evaluation')
-    plt.plot(train_steps, train_metrics, label='training')
-    plt.xscale('log')
-    plt.title('Log-Scale Cross-Entropy Loss')
+    plt.legend(loc='upper right')
+    plt.gca().xaxis.set_major_formatter(
+        plt.FuncFormatter(lambda x, pos: f'{math.floor(x / 1000)}k'))
+
+
+def _plot_log_scale_metrics_graph(train_steps: List[int],
+                                  train_losses: List[float],
+                                  eval_steps: List[int],
+                                  eval_losses: List[float]):
+    plt.plot(train_steps, train_losses,
+             label='train', color='#4dacfa', linewidth=2, zorder=10)
+    plt.plot(eval_steps, eval_losses,
+             label='evaluate', color='#ff6e54', linewidth=2, zorder=0)
+
+    plt.title('Log-Scale Loss Graph')
     plt.xlabel('Iterations (Log Scale)')
     plt.ylabel('Loss')
-    plt.legend(loc='top right')
 
+    plt.xscale('log')
+
+    plt.legend(loc='upper right')
+    plt.gca().xaxis.set_major_formatter(
+        plt.FuncFormatter(lambda x, pos: f'{math.floor(x / 1000)}k'))
+
+
+def _plot_stretched_metrics_graph(train_steps: List[int],
+                                  train_losses: List[float],
+                                  eval_steps: List[int],
+                                  eval_losses: List[float]):
     target_range_train = len(train_steps) * 9 // 10
     target_range_eval = len(eval_steps) * 9 // 10
-    min_loss = min(train_metrics[-target_range_train:]
-                   + eval_metrics[-target_range_eval:])
-    max_loss = max(train_metrics[-target_range_train:]
-                   + eval_metrics[-target_range_eval:])
+    min_loss = min(train_losses[-target_range_train:]
+                   + eval_losses[-target_range_eval:])
+    max_loss = max(train_losses[-target_range_train:]
+                   + eval_losses[-target_range_eval:])
 
-    plt.subplot(223)
-    plt.plot(eval_steps, eval_metrics, label='evaluation')
-    plt.plot(train_steps, train_metrics, label='training')
-    plt.title('Loss')
+    plt.plot(train_steps, train_losses,
+             label='train', color='#4dacfa', linewidth=2, zorder=10)
+    plt.plot(eval_steps, eval_losses,
+             label='evaluate', color='#ff6e54', linewidth=1, zorder=1)
+
+    plt.title('Detail Loss Graph')
     plt.xlabel('Iterations')
     plt.ylabel('Loss')
-    plt.legend(loc='top right')
-    plt.ylim((min_loss - 0.1, max_loss + 0.1))
+
+    plt.ylim(min_loss - 0.1, max_loss + 0.1)
+
+    plt.legend(loc='upper right')
+    plt.gca().xaxis.set_major_formatter(
+        plt.FuncFormatter(lambda x, pos: f'{math.floor(x / 1000)}k'))
+
+
+def _plot_highlight_metrics_graph(train_steps: List[int],
+                                  train_losses: List[float],
+                                  eval_steps: List[int],
+                                  eval_losses: List[float]):
+    beta = 2 / (100 + 1)
+    smoothed_eval_losses = [eval_losses[0]]
+    for loss in eval_losses[1:]:
+        smoothed_eval_losses.append(
+            beta * loss + (1 - beta) * smoothed_eval_losses[-1])
 
     target_range_train = len(train_steps) * 3 // 10
     target_range_eval = len(eval_steps) * 3 // 10
 
-    plt.subplot(224)
-    plt.plot(eval_steps[-target_range_eval:],
-             eval_metrics[-target_range_eval:],
-             label='evaluation')
     plt.plot(train_steps[-target_range_train:],
-             train_metrics[-target_range_train:],
-             label='training')
-    plt.title('Loss')
+             train_losses[-target_range_train:],
+             label='train', color='#4dacfa', linewidth=2, zorder=10)
+    plt.plot(eval_steps[-target_range_eval:],
+             smoothed_eval_losses[-target_range_eval:],
+             label='evaluate', color='#ff6e54', linewidth=2, zorder=1)
+    plt.plot(eval_steps[-target_range_eval:],
+             eval_losses[-target_range_eval:],
+             color='#ff6e543f', linewidth=3, zorder=0)
+
+    plt.title('Detail Loss Graph')
     plt.xlabel('Iterations')
     plt.ylabel('Loss')
-    plt.legend(loc='top right')
+
+    plt.legend(loc='upper right')
+    plt.gca().xaxis.set_major_formatter(
+        plt.FuncFormatter(lambda x, pos: f'{math.floor(x / 1000)}k'))
+
+
+def visualize_recorded_metrics(args: argparse.Namespace):
+    metrics = torch.load(args.model)['metrics']
+    train_steps, train_losses = zip(*metrics['train/loss'])
+    eval_steps, eval_losses = zip(*metrics['eval/loss'])
+
+    plt.figure(figsize=(12, 8))
+
+    plt.subplot(221)
+    _plot_entire_metrics_graph(train_steps, train_losses,
+                               eval_steps, eval_losses)
+
+    plt.subplot(222)
+    _plot_log_scale_metrics_graph(train_steps, train_losses,
+                                  eval_steps, eval_losses)
+
+    plt.subplot(223)
+    _plot_stretched_metrics_graph(train_steps, train_losses,
+                                  eval_steps, eval_losses)
+
+    plt.subplot(224)
+    _plot_highlight_metrics_graph(train_steps, train_losses,
+                                  eval_steps, eval_losses)
 
     plt.tight_layout()
     if args.interactive:
