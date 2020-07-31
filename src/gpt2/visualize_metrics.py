@@ -107,7 +107,7 @@ def visualize_recorded_metrics(args: argparse.Namespace):
     train_steps, train_losses = zip(*metrics['train/loss'])
     eval_steps, eval_losses = zip(*metrics['eval/loss'])
 
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(10, 7))
 
     plt.subplot(221)
     _plot_entire_metrics_graph(train_steps, train_losses,
