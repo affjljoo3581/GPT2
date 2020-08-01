@@ -155,7 +155,8 @@ class Trainer(object):
                     dataset: Dataset,
                     model: nn.Module,
                     optimizer: optim.Optimizer,
-                    scheduler: optim.lr_scheduler._LRScheduler) -> float:
+                    scheduler: optim.lr_scheduler._LRScheduler
+                    ) -> Dict[str, float]:
         model.train()
         optimizer.zero_grad()
 
@@ -176,7 +177,7 @@ class Trainer(object):
 
     @torch.no_grad()
     def _eval_step(self, rank: int, dataset: Dataset, model: nn.Module
-                   ) -> float:
+                   ) -> Dict[str, float]:
         model.eval()
 
         data = self._fetch_from(dataset, rank, self.config.batch_eval)
