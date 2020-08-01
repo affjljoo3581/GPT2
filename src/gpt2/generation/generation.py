@@ -10,6 +10,7 @@ class Generator(object):
         self.config = config
 
     def initialize(self, from_model: Optional[str] = None):
+        # Initialize generation environment and construct a model.
         self.spec.initialize()
         self.model = self.spec.construct_model().eval()
 
@@ -28,9 +29,11 @@ class Generator(object):
 
         current, past = words, None
         while len(words) < self.config.seq_len:
+            # Predict the next word token from the given context.
             probs, past = self._predict_probs(current, past)
             next_word = self._sample_from_top_p(probs)
 
+            # Change the context to the predicted word.
             words.append(next_word)
             current = [next_word]
 
