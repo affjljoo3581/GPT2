@@ -12,10 +12,9 @@ _PUNCTUATION_RANGE = '\\p{P}\x21-\x2f\x3a-\x40\x5b-\x60\x7b-\x7e'
 class Tokenizer(object):
     def __init__(self,
                  vocab: Vocab,
-                 additional_tokens: List[str] = [],
                  max_word_len: int = 100):
         self.vocab = vocab
-        self.additional_tokens = additional_tokens
+        self.exclude_tokens = [vocab.unk_token] + vocab.additional_tokens
         self.max_word_len = max_word_len
 
     def encode(self, text: str) -> List[str]:
@@ -44,7 +43,7 @@ class Tokenizer(object):
 
         normalized = []
         for t in text.split():
-            if t in self.additional_tokens:
+            if t in self.exclude_tokens:
                 normalized.append(t)
             else:
                 # Prevent from treating tokens with punctuations.
