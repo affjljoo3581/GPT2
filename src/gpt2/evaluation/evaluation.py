@@ -27,7 +27,7 @@ class Evaluator(object):
             model.cuda().half()
 
         total_metrics = {}
-        while True:
+        for _ in self.config.iterate():
             batch_metrics = self._eval_step(eval_dataset, model)
             if batch_metrics is None:
                 break
