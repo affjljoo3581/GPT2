@@ -48,9 +48,11 @@ class Generator(object):
         x = self.spec.decorate_sequence(
             x, offset=past[0][0].size(-2) if past is not None else 0)
 
-        logits, past = self.model(x, past)
         if self.config.use_gpu:
+            logits, past = self.model(x.cuda(), past)
             logits = logits.cpu().float()
+        else:
+            logits, past = self.model(x, past)
 
         return logits[-1, :].softmax(-1), past
 
