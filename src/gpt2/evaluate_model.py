@@ -38,9 +38,9 @@ class GPT2EvaluationSpec(EvaluationSpec):
     def eval_objective(self, data: Dict[str, torch.Tensor], model: nn.Module
                        ) -> Dict[str, torch.Tensor]:
         logits, _ = model(data['input'], past=None)
-        loss = self.criterion(logits.transpose(1, 2), data['output'])
-        print(loss.shape)
-        return {'loss': loss.mean()}
+        loss = self.criterion(logits.transpose(1, 2), data['output']).mean(-1)
+
+        return {'loss': loss.mean(), 'perplexity': loss.exp().mean()}
 
 
 def evaluate_gpt2_model(args: argparse.Namespace):
@@ -49,7 +49,8 @@ def evaluate_gpt2_model(args: argparse.Namespace):
         seq_len=args.seq_len, layers=args.layers, heads=args.heads,
         dims=args.dims, rate=args.rate)
     config = EvaluateConfig(
-        batch_eval=args.batch_eval, use_gpu=args.use_gpu)
+        batch_eval=args.batch_eval, total_steps=args.total_steps,
+        use_gpu=args.use_gpu)
 
     print(Evaluator(spec, config).evaluate(from_model=args.model_path))
 
@@ -81,6 +82,8 @@ def add_subparser(subparsers: argparse._SubParsersAction):
     group = parser.add_argument_group('Evaluation options')
     group.add_argument('--batch_eval', default=64, type=int,
                        help='number of evaluation batch size')
+    group.add_argument('--total_steps', default=-1, type=int,
+                       help='number of total evaluation steps')
     group.add_argument('--use_gpu', action='store_true',
                        help='use gpu device in inferencing')
 
