@@ -120,7 +120,7 @@ After training GPT-2, you can generate sentences with your trained model in inte
     $ python -m gpt2 generate --vocab_path      build/vocab.txt \
                               --model           model.pth \
                               --seq_len         64 \
-                              --top_p           0.8
+                              --nucleus_prob    0.8
 
 The detail of command-line usage is as follows:
 
@@ -142,7 +142,8 @@ The detail of command-line usage is as follows:
       --rate RATE           increase rate of dimensionality in bottleneck
 
     Generating options:
-      --top_p TOP_P         probability threshold for nucleus sampling
+      --nucleus_prob NUCLEUS_PROB
+                            probability threshold for nucleus sampling
       --use_gpu             use gpu device in inferencing
 
 ### Visualize metrics
