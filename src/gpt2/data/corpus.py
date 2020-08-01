@@ -4,15 +4,24 @@ from typing import Dict, Any, List, Optional
 
 
 class TokenizedCorpus(Dataset):
-    def __init__(self, corpus_path: str, vocab: Vocab, seq_len: int):
+    def __init__(self,
+                 corpus_path: str,
+                 vocab: Vocab,
+                 seq_len: int,
+                 repeat: bool = True):
         self.corpus_fp = open(corpus_path, 'r', encoding='utf-8')
         self.vocab = vocab
         self.seq_len = seq_len
+        self.repeat = repeat
 
     def skip(self, count: int):
         for _ in range(count):
             if not self.corpus_fp.readline():
-                # If all sequences are fetched, move to the first of corpus.
+                # Raise error when all sequences are fetched.
+                if not self.repeat:
+                    raise StopIteration()
+
+                # Or, move to the first of the corpus.
                 self.corpus_fp.seek(0)
                 self.corpus_fp.readline()
 
@@ -21,6 +30,11 @@ class TokenizedCorpus(Dataset):
             # Read subword-tokenized sequence from corpus.
             line = self.corpus_fp.readline()
             if not line:
+                # Raise error when all sequences are fetched.
+                if not self.repeat:
+                    raise StopIteration()
+
+                # Or, move to the first of the corpus.
                 self.corpus_fp.seek(0)
                 continue
 
