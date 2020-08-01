@@ -1,71 +1,62 @@
 import torch
-import torch.nn as nn
-from gpt2.data import Vocab
 from gpt2.modeling import Past
-from gpt2.generation import Tokenizer
-from typing import Tuple, List, Optional
+from gpt2.generation import GenerationSpec, GenerateConfig
+from typing import List, Optional, Tuple
 
 
 class Generator(object):
-    def __init__(self,
-                 vocab: Vocab,
-                 tokenizer: Tokenizer,
-                 model: nn.Module,
-                 seq_len: int,
-                 top_p: float = 0.85,
-                 use_gpu: bool = False):
-        if use_gpu:
-            model.cuda().half()
+    def __init__(self, spec: GenerationSpec, config: GenerateConfig):
+        self.spec = spec
+        self.config = config
 
-        self.vocab = vocab
-        self.tokenizer = tokenizer
-        self.model = model
-        self.seq_len = seq_len
-        self.top_p = top_p
-        self.top_p = top_p
-        self.use_gpu = use_gpu
+    def initialize(self, from_model: Optional[str] = None):
+        self.spec.initialize()
+        self.model = self.spec.construct_model().eval()
 
-    def _sample_from_top_p(self, probs: torch.Tensor) -> int:
-        probs, indices = probs.sort(descending=True)
+        # Load trained model parameters.
+        if from_model:
+            ckpt = torch.load(from_model, map_location='cpu')
+            self.model.load_state_dict(ckpt['model'])
 
-        mask = probs.cumsum(-1) > self.top_p
-        mask[0] = False
-        probs.masked_fill_(mask, 0)
-
-        # Sample from filtered distribution.
-        return indices[probs.multinomial(1)[0]]
-
-    @torch.no_grad()
-    def _predict_probs(self,
-                       words: List[int],
-                       past: Optional[List[Past]] = None
-                       ) -> Tuple[torch.Tensor, List[Past]]:
-        x = torch.tensor(words,
-                         dtype=torch.long,
-                         device='cuda' if self.use_gpu else 'cpu')
-        logits, past = self.model(x, past)
-
-        # If tokens are predicted on GPU, copy the logits tensor to CPU.
-        if self.use_gpu:
-            logits = logits.cpu().float()
-
-        return logits[-1, :].softmax(-1), past
+        # Move the model to GPU device and convert the data type to half
+        # precision.
+        if self.config.use_gpu:
+            self.model.cuda().half()
 
     def generate(self, context: str) -> str:
-        words = [self.vocab[t] for t in self.tokenizer.encode(context)]
-        words = [self.vocab.bos_idx] + words
+        words = self.spec.encode_context(context)
 
         current, past = words, None
-        while len(words) < self.seq_len:
+        while len(words) < self.config.seq_len:
             probs, past = self._predict_probs(current, past)
             next_word = self._sample_from_top_p(probs)
 
             words.append(next_word)
             current = [next_word]
 
-            # If end-of-sentence token is sampled, then terminate generating
-            # sentence.
-            if next_word == self.vocab.eos_idx:
-                break
+        return self.spec.decode_tokens(words)
 
-        return self.tokenizer.decode([self.vocab[w] for w in words])
+    @torch.no_grad()
+    def _predict_probs(self,
+                       words: List[int],
+                       past: Optional[List[Past]] = None
+                       ) -> Tuple[torch.Tensor, List[Past]]:
+        x = torch.tensor(words, dtype=torch.long)
+        x = self.spec.decorate_sequence(
+            x, offset=past[0][0].size(-2) if past is not None else 0)
+
+        logits, past = self.model(x, past)
+        if self.config.use_gpu:
+            logits = logits.cpu().float()
+
+        return logits[-1, :].softmax(-1), past
+
+    def _sample_from_top_p(self, probs: torch.Tensor) -> int:
+        probs, indices = probs.sort(descending=True)
+
+        mask = probs.cumsum(-1) > self.config.nucleus_prob
+        mask[0] = False
+        probs.masked_fill_(mask, 0)
+
+        # Sample from filtered distribution.
+        return indices[probs.multinomial(1)[0]].item()
