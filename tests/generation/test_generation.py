@@ -45,7 +45,7 @@ def test_generator_predict_probs_output_shape():
 def test_generator_generate():
     spec = GenerationSpec()
     spec.construct_model = lambda: Transformer(
-        layers=2, pad_idx=0, words=80, seq_len=16, heads=2, dims=16, rate=4,
+        layers=2, pad_idx=0, words=80, seq_len=50, heads=2, dims=16, rate=4,
         dropout=0, bidirectional=False)
     spec.encode_context = lambda context: list(range(len(context.split())))
     spec.decode_tokens = lambda tokens: ' '.join(str(t) for t in tokens)
