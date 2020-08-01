@@ -14,10 +14,10 @@ class Vocab(object):
         self.pad_token = pad_token
 
         with open(vocab_path, 'r', encoding='utf-8') as fp:
-            additional_tokens = [bos_token, eos_token, pad_token]
+            self.additional_tokens = [bos_token, eos_token, pad_token]
 
             # The additional tokens would be inserted before the words.
-            self.words = additional_tokens + fp.read().split()
+            self.words = self.additional_tokens + fp.read().split()
             self.vocab = {word: i for i, word in enumerate(self.words)}
 
     def __getitem__(self, idx_or_token: Union[int, str]) -> Union[str, int]:
