@@ -1,5 +1,8 @@
 import argparse
-from gpt2 import train_model, generate_sentences, visualize_metrics
+from gpt2 import (train_model,
+                  evaluate_model,
+                  generate_sentences,
+                  visualize_metrics)
 
 
 if __name__ == '__main__':
@@ -9,6 +12,7 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers(dest='subcommands', required=True)
 
     train_model.add_subparser(subparsers)
+    evaluate_model.add_subparser(subparsers)
     generate_sentences.add_subparser(subparsers)
     visualize_metrics.add_subparser(subparsers)
 
