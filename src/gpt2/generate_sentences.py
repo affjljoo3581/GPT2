@@ -1,30 +1,52 @@
-import torch
 import argparse
-from gpt2.data import Vocab
+import torch.nn as nn
+from gpt2.data import Vocab, Tokenizer
 from gpt2.modeling import Transformer
-from gpt2.generation import Tokenizer, Generator
+from gpt2.generation import GenerationSpec, GenerateConfig, Generator
+from typing import List
+
+
+class GPT2GenerationSpec(GenerationSpec):
+    def __init__(self, vocab_path: str, seq_len: int, layers: int, heads: int,
+                 dims: int, rate: int):
+        self.vocab_path = vocab_path
+        self.seq_len = seq_len
+        self.layers = layers
+        self.heads = heads
+        self.dims = dims
+        self.rate = rate
+
+    def initialize(self):
+        self.vocab = Vocab(self.vocab_path)
+        self.tokenizer = Tokenizer(self.vocab)
+
+    def construct_model(self) -> nn.Module:
+        return Transformer(layers=self.layers, pad_idx=self.vocab.pad_idx,
+                           words=len(self.vocab), seq_len=self.seq_len,
+                           heads=self.heads, dims=self.dims, rate=self.rate,
+                           dropout=0, bidirectional=False)
+
+    def encode_context(self, context: str) -> List[int]:
+        tokens = [self.vocab[t] for t in self.tokenizer.encode(context)]
+        tokens = [self.vocab.bos_idx] + tokens
+
+        return tokens
+
+    def decode_tokens(self, tokens: List[int]) -> str:
+        tokens = tokens[:tokens.index(self.vocab.eos_idx)+1]
+        return self.tokenizer.decode([self.vocab[t] for t in tokens])
 
 
 def generate_sentence_with_gpt2_model(args: argparse.Namespace):
-    vocab = Vocab(vocab_path=args.vocab_path)
-    tokenizer = Tokenizer(
-        vocab, additional_tokens=[vocab.unk_token, vocab.bos_token,
-                                  vocab.eos_token, vocab.pad_token])
+    spec = GPT2GenerationSpec(
+        vocab_path=args.vocab_path, seq_len=args.seq_len, layers=args.layers,
+        heads=args.heads, dims=args.dims, rate=args.rate)
+    config = GenerateConfig(
+        seq_len=args.seq_len, nucleus_prob=args.nucleus_prob,
+        use_gpu=args.use_gpu)
 
-    model = Transformer(layers=args.layers, pad_idx=vocab.pad_idx,
-                        words=vocab.words, seq_len=args.seq_len,
-                        heads=args.heads, dims=args.dims, rate=args.rate,
-                        dropout=0, bidirectional=False)
-    model.eval()
-
-    # Create generator to generate sentences with GPT-2 model.
-    generator = Generator(vocab, tokenizer, model, seq_len=args.seq_len,
-                          top_p=args.top_p, use_gpu=args.use_gpu)
-
-    # Restore trained GPT-2 parameters.
-    trained_model = torch.load(
-        args.model, map_location='cuda' if args.use_gpu else 'cpu')
-    model.state_dict(trained_model['model'])
+    generator = Generator(spec, config)
+    generator.initialize(from_model=args.model_path)
 
     while True:
         print(generator.generate(input('>>')))
@@ -36,7 +58,7 @@ def add_subparser(subparsers: argparse._SubParsersAction):
 
     parser.add_argument('--vocab_path', required=True,
                         help='vocabulary file path')
-    parser.add_argument('--model', required=True,
+    parser.add_argument('--model_path', required=True,
                         help='trained GPT-2 model file path')
 
     group = parser.add_argument_group('Model configurations')
@@ -52,7 +74,7 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                        help='increase rate of dimensionality in bottleneck')
 
     group = parser.add_argument_group('Generating options')
-    group.add_argument('--top_p', default=0.85, type=float,
+    group.add_argument('--nucleus_prob', default=0.85, type=float,
                        help='probability threshold for nucleus sampling')
     group.add_argument('--use_gpu', action='store_true',
                        help='use gpu device in inferencing')
