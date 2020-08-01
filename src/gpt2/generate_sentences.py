@@ -73,7 +73,7 @@ def add_subparser(subparsers: argparse._SubParsersAction):
     group.add_argument('--rate', default=4, type=int,
                        help='increase rate of dimensionality in bottleneck')
 
-    group = parser.add_argument_group('Generating options')
+    group = parser.add_argument_group('Generation options')
     group.add_argument('--nucleus_prob', default=0.85, type=float,
                        help='probability threshold for nucleus sampling')
     group.add_argument('--use_gpu', action='store_true',
