@@ -20,8 +20,7 @@ class GPT2EvaluationSpec(EvaluationSpec):
 
     def initialize(self):
         self.vocab = Vocab(vocab_path=self.vocab_path)
-        self.criterion = nn.CrossEntropyLoss(ignore_index=self.vocab.pad_idx,
-                                             reduction='none')
+        self.criterion = nn.CrossEntropyLoss(reduction='none')
 
     def prepare_dataset(self) -> Dataset:
         return TokenizedCorpus(corpus_path=self.eval_corpus,
@@ -38,9 +37,13 @@ class GPT2EvaluationSpec(EvaluationSpec):
     def eval_objective(self, data: Dict[str, torch.Tensor], model: nn.Module
                        ) -> Dict[str, torch.Tensor]:
         logits, _ = model(data['input'], past=None)
-        loss = self.criterion(logits.transpose(1, 2), data['output']).mean(-1)
+        loss = self.criterion(logits.transpose(1, 2), data['output'])
 
-        return {'loss': loss.mean(), 'perplexity': loss.exp().mean()}
+        mask = (data['output'] != self.vocab.pad_idx).float()
+        loss = (loss * mask).sum() / mask.sum()
+        perplexity = (loss.exp() * mask).sum() / mask.sum()
+
+        return {'loss': loss, 'perplexity': perplexity}
 
 
 def evaluate_gpt2_model(args: argparse.Namespace):
