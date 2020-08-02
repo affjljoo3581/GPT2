@@ -2,6 +2,7 @@
 
 ![build](https://github.com/affjljoo3581/GPT2/workflows/build/badge.svg)
 ![GitHub](https://img.shields.io/github/license/affjljoo3581/GPT2)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/affjljoo3581/GPT2/blob/master/GPT2_Interactive_Notebook.ipynb)
 [![codecov](https://codecov.io/gh/affjljoo3581/GPT2/branch/master/graph/badge.svg)](https://codecov.io/gh/affjljoo3581/GPT2)
 [![CodeFactor](https://www.codefactor.io/repository/github/affjljoo3581/gpt2/badge)](https://www.codefactor.io/repository/github/affjljoo3581/gpt2)
 
@@ -14,8 +15,10 @@
 * [Usage](#usage)
   * [How to train?](#how-to-train)
   * [Generate sentences!](#generate-sentences)
+  * [Evaluate the model](#evaluate-the-model)
   * [Visualize metrics](#visualize-metrics)
 * [Using apex in training](#using-apex-in-training)
+* [Play in Google Colab!](#play-in-google-colab)
 * [License](#license)
 
 
@@ -118,7 +121,7 @@ The detail of command-line usage is as follows:
 After training GPT-2, you can generate sentences with your trained model in interactive mode.
 
     $ python -m gpt2 generate --vocab_path      build/vocab.txt \
-                              --model           model.pth \
+                              --model_path      model.pth \
                               --seq_len         64 \
                               --nucleus_prob    0.8
 
@@ -132,7 +135,8 @@ The detail of command-line usage is as follows:
       -h, --help            show this help message and exit
       --vocab_path VOCAB_PATH
                             vocabulary file path
-      --model MODEL         trained GPT-2 model file path
+      --model_path MODEL_PATH
+                            trained GPT-2 model file path
 
     Model configurations:
       --seq_len SEQ_LEN     maximum sequence length
@@ -146,10 +150,16 @@ The detail of command-line usage is as follows:
                             probability threshold for nucleus sampling
       --use_gpu             use gpu device in inferencing
 
+### Evaluate the model
+
+One way to estimate the performance of trained model is to calculate the objective metrics with evaluation dataset, which is not used during training phase.
+
+    $ python -m gpt2 evaluate --model_path model.pth --eval_corpus corpus.test.txt --vocab_path vocab.txt
+
 ### Visualize metrics
 Moreover, you can also analyse training loss graph by visualizing recorded metrics.
 
-    $ python -m gpt2 visualize --model model.pth --interactive
+    $ python -m gpt2 visualize --model_path model.pth --interactive
 
 The example figure is as bellow:
 
@@ -163,6 +173,11 @@ While training, you can use **NVIDIA apex** to use fused CUDA layers and mixed-p
     $ pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
 
 If you cannot install the library or your GPU device does not support fast mixed-precision training (precisely, GPU should support mixed-precision acceleration through [Tensor Cores](https://developer.nvidia.com/tensor-cores)), you can train the model in single-precision mode. Mixed-precision training is an option. In that case, you can still use fused CUDA layers such as Adam optimizer and layer normalization in training.
+
+## Play in Google Colab!
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/affjljoo3581/GPT2/blob/master/GPT2_Interactive_Notebook.ipynb)
+
+You can play trained GPT2 model in Google Colab! The above notebook contains text generation and metrics evaluation. You need to upload the trained model, vocabulary file and evaluation dataset to [Google Cloud Storage](https://cloud.google.com/storage).
 
 ## License
 This project is [Apache-2.0 Licensed](./LICENSE).
