@@ -103,7 +103,7 @@ def _plot_highlight_metrics_graph(train_steps: List[int],
 
 
 def visualize_recorded_metrics(args: argparse.Namespace):
-    metrics = torch.load(args.model)['metrics']
+    metrics = torch.load(args.model_path)['metrics']
     train_steps, train_losses = zip(*metrics['train/loss'])
     eval_steps, eval_losses = zip(*metrics['eval/loss'])
 
@@ -138,7 +138,7 @@ def add_subparser(subparsers: argparse._SubParsersAction):
 
     parser.add_argument('--figure', default='figure.png',
                         help='output figure image file path')
-    parser.add_argument('--model', required=True,
+    parser.add_argument('--model_path', required=True,
                         help='trained GPT-2 model file path')
     parser.add_argument('--interactive', action='store_true',
                         help='show interactive plot window')
