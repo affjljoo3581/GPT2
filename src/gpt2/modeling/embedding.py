@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from typing import Dict, Any
+from typing import Dict
 
 
 class PositionalEmbedding(nn.Embedding):
@@ -15,7 +15,10 @@ class PositionalEmbedding(nn.Embedding):
     def reset_parameters(self):
         nn.init.normal_(self.weight, std=0.02)
 
-    def load_state_dict(self, state_dict: Dict[str, Any]):
+    def _load_from_state_dict(self,
+                              state_dict: Dict[str, torch.Tensor],
+                              *args,
+                              **kwargs):
         weight = state_dict['weight']
 
         # Reduce or expand the positional embedding matrix to increase or
@@ -26,7 +29,7 @@ class PositionalEmbedding(nn.Embedding):
             weight = weight[:self.num_embeddings]
 
         state_dict['weight'] = weight
-        super().load_state_dict(state_dict)
+        super()._load_from_state_dict(state_dict, *args, **kwargs)
 
     def forward(self, x: torch.Tensor, offset: int = 0) -> torch.Tensor:
         position = torch.arange(offset, offset + x.size(-1),
