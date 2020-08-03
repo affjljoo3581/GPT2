@@ -95,9 +95,11 @@ class Trainer(object):
         if rank == 0:
             # Create tqdm iterator in master process to show the progress of
             # training.
-            training_iters = tqdm.trange(self.config.total_steps,
-                                         desc=self.config.description,
-                                         dynamic_ncols=True)
+            training_iters = tqdm.tqdm(
+                range(start_step + 1, self.config.total_steps),
+                total=self.config.total_steps,
+                desc=self.config.description,
+                dynamic_ncols=True)
             training_iters.update(start_step + 1)
         else:
             # In other processes, use simple iterator rather than tqdm one.
