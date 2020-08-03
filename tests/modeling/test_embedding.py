@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 from gpt2.modeling import PositionalEmbedding, TokenEmbedding
 
 
@@ -16,6 +17,24 @@ def test_positional_embedding_load_state_dict():
     # Expand the embedding matrix to increase the sequence length.
     layer_64.load_state_dict(layer_32.state_dict())
     assert (layer_32.weight == layer_64.weight[:32]).all()
+
+
+def test_positional_embedding_load_state_dict_with_wrapper():
+    layer_32 = nn.Sequential(
+        PositionalEmbedding(num_embeddings=32, embedding_dim=16))
+    layer_64 = nn.Sequential(
+        PositionalEmbedding(num_embeddings=64, embedding_dim=16))
+
+    # Reduce the embedding matrix to decrease the sequence length.
+    layer_32.load_state_dict(layer_64.state_dict())
+    assert (layer_32[0].weight == layer_64[0].weight[:32]).all()
+
+    layer_32[0].reset_parameters()
+    layer_64[0].reset_parameters()
+
+    # Expand the embedding matrix to increase the sequence length.
+    layer_64.load_state_dict(layer_32.state_dict())
+    assert (layer_32[0].weight == layer_64[0].weight[:32]).all()
 
 
 def test_positional_embedding_output_shape():
