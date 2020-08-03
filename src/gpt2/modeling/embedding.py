@@ -17,9 +17,10 @@ class PositionalEmbedding(nn.Embedding):
 
     def _load_from_state_dict(self,
                               state_dict: Dict[str, torch.Tensor],
+                              prefix: str,
                               *args,
                               **kwargs):
-        weight = state_dict['weight']
+        weight = state_dict[f'{prefix}weight']
 
         # Reduce or expand the positional embedding matrix to increase or
         # decrease the total sequence length.
@@ -28,8 +29,8 @@ class PositionalEmbedding(nn.Embedding):
         elif weight.size(0) > self.num_embeddings:
             weight = weight[:self.num_embeddings]
 
-        state_dict['weight'] = weight
-        super()._load_from_state_dict(state_dict, *args, **kwargs)
+        state_dict[f'{prefix}weight'] = weight
+        super()._load_from_state_dict(state_dict, prefix, *args, **kwargs)
 
     def forward(self, x: torch.Tensor, offset: int = 0) -> torch.Tensor:
         position = torch.arange(offset, offset + x.size(-1),
