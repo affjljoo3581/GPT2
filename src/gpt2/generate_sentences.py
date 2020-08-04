@@ -33,7 +33,8 @@ class GPT2GenerationSpec(GenerationSpec):
         return tokens
 
     def decode_tokens(self, tokens: List[int]) -> str:
-        tokens = tokens[:tokens.index(self.vocab.eos_idx)+1]
+        if self.vocab.eos_idx in tokens:
+            tokens = tokens[:tokens.index(self.vocab.eos_idx)+1]
         return self.tokenizer.decode([self.vocab[t] for t in tokens])
 
 
