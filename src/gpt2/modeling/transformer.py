@@ -5,7 +5,7 @@ from gpt2.utils.fusing import LayerNorm
 from gpt2.modeling import (PadMasking, FutureMasking, AttentionLayer, Past,
                            PositionalEmbedding, TokenEmbedding,
                            PositionwiseFeedForward)
-from typing import Optional, Tuple, List, Union
+from typing import Optional, Tuple, List
 
 
 class TransformerLayer(nn.Module):
@@ -34,9 +34,8 @@ class TransformerLayer(nn.Module):
     def forward(self,
                 x: torch.Tensor,
                 past: Optional[Past] = None,
-                mask: Optional[torch.Tensor] = None,
-                return_past: bool = True
-                ) -> Union[torch.Tensor, Tuple[torch.Tensor, Past]]:
+                mask: Optional[torch.Tensor] = None
+                ) -> Tuple[torch.Tensor, Past]:
         # Layer normalizations are performed before the layers respectively.
         a = self.ln_attn(x)
         a, past = self.attn(a, a, a, past, mask)
@@ -44,9 +43,7 @@ class TransformerLayer(nn.Module):
         x = x + a
         x = x + self.ff(self.ln_ff(x))
 
-        if return_past:
-            return x, past
-        return x
+        return x, past
 
 
 class Transformer(nn.Module):
@@ -105,7 +102,7 @@ class Transformer(nn.Module):
         for i, transformer in enumerate(self.transformers):
             if use_grad_ckpt:
                 x = torch.utils.checkpoint.checkpoint(
-                    lambda *inputs: transformer(*inputs, return_past=False),
+                    lambda *inputs: transformer(*inputs)[0],
                     x, past[i] if past is not None else None, mask)
             else:
                 x, p = transformer(
