@@ -101,8 +101,11 @@ class Transformer(nn.Module):
         present = []
         for i, transformer in enumerate(self.transformers):
             if use_grad_ckpt:
+                def custom_forward(x, past, mask):
+                    return transformer(x, past, mask)[0]
+
                 x = torch.utils.checkpoint.checkpoint(
-                    lambda *inputs: transformer(*inputs)[0],
+                    custom_forward,
                     x, past[i] if past is not None else None, mask)
             else:
                 x, p = transformer(
