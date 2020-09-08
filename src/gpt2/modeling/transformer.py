@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
-from gpt2.utils.fusing import LayerNorm
+import torch.utils.checkpoint
+from gpt2.utils.fusing import LayerNorm\
 from gpt2.modeling import (PadMasking, FutureMasking, AttentionLayer, Past,
                            PositionalEmbedding, TokenEmbedding,
                            PositionwiseFeedForward)
@@ -39,8 +40,8 @@ class TransformerLayer(nn.Module):
         a = self.ln_attn(x)
         a, past = self.attn(a, a, a, past, mask)
 
-        x = x + a
-        x = x + self.ff(self.ln_ff(x))
+        x = self.ln_ff(x + a)
+        x = x + torch.utils.checkpoint.checkpoint(self.ff, x)
 
         return x, past
 
@@ -98,7 +99,8 @@ class Transformer(nn.Module):
         # Apply transformer layers sequentially.
         present = []
         for i, transformer in enumerate(self.transformers):
-            x, p = transformer(x, past[i] if past is not None else None, mask)
+            x, p = torch.utils.checkpoint.checkpoint(
+                transformer, x, past[i] if past is not None else None, mask)
             present.append(p)
 
         x = self.ln_head(x)
