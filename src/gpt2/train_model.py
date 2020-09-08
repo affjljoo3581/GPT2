@@ -13,7 +13,7 @@ class GPT2TrainingSpec(TrainingSpec):
     def __init__(self, train_corpus: str, eval_corpus: str, vocab_path: str,
                  seq_len: int, layers: int, heads: int, dims: int, rate: int,
                  dropout: float, base_lr: float, wd_rate: float,
-                 total_steps: int):
+                 total_steps: int, use_grad_ckpt: bool):
         self.train_corpus = train_corpus
         self.eval_corpus = eval_corpus
         self.vocab_path = vocab_path
@@ -26,6 +26,7 @@ class GPT2TrainingSpec(TrainingSpec):
         self.base_lr = base_lr
         self.wd_rate = wd_rate
         self.total_steps = total_steps
+        self.use_grad_ckpt = use_grad_ckpt
 
     def initialize(self):
         self.vocab = Vocab(vocab_path=self.vocab_path)
@@ -58,7 +59,9 @@ class GPT2TrainingSpec(TrainingSpec):
 
     def train_objective(self, data: Dict[str, torch.Tensor], model: nn.Module
                         ) -> Dict[str, torch.Tensor]:
-        logits, _ = model(data['input'], past=None)
+        logits, _ = model(data['input'],
+                          past=None,
+                          use_grad_ckpt=self.use_grad_ckpt)
         loss = self.criterion(logits.transpose(1, 2), data['output'])
         return {'loss': loss}
 
@@ -75,7 +78,7 @@ def train_gpt2_model(args: argparse.Namespace):
         vocab_path=args.vocab_path, seq_len=args.seq_len, layers=args.layers,
         heads=args.heads, dims=args.dims, rate=args.rate, dropout=args.dropout,
         base_lr=args.base_lr, wd_rate=args.wd_rate,
-        total_steps=args.total_steps)
+        total_steps=args.total_steps, use_grad_ckpt=args.use_grad_ckpt)
     config = TrainConfig(
         batch_train=args.batch_train, batch_eval=args.batch_eval,
         total_steps=args.total_steps, eval_steps=args.eval_steps,
@@ -144,6 +147,8 @@ def add_subparser(subparsers: argparse._SubParsersAction):
     group = parser.add_argument_group('Extensions')
     group.add_argument('--use_amp', action='store_true',
                        help='use automatic mixed-precision in training')
+    group.add_argument('--use_grad_ckpt', action='store_true',
+                       help='use gradient checkpointing in transformer layers')
     group.add_argument('--gpus', default=None, type=int,
                        help='number of gpu devices to use in training')
 
