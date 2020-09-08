@@ -38,10 +38,18 @@ class TransformerLayer(nn.Module):
                 ) -> Tuple[torch.Tensor, Past]:
         # Layer normalizations are performed before the layers respectively.
         a = self.ln_attn(x)
-        a, past = self.attn(a, a, a, past, mask)
 
-        x = self.ln_ff(x + a)
-        x = x + torch.utils.checkpoint.checkpoint_sequential(self.ff, 3, x)
+        if self.training:
+            def custom_forward(q, k, v, past, mask):
+                return self.attn(q, k, v, past, mask)[0]
+
+            a = torch.utils.checkpoint.checkpoint(
+                custom_forward, a, a, a, past, mask)
+        else:
+            a, past = self.attn(a, a, a, past, mask)
+
+        x = x + a
+        x = x + self.ff(self.ln_ff(x))
 
         return x, past
 
