@@ -99,8 +99,7 @@ class Transformer(nn.Module):
         # Apply transformer layers sequentially.
         present = []
         for i, transformer in enumerate(self.transformers):
-            x, p = torch.utils.checkpoint.checkpoint(
-                transformer, x, past[i] if past is not None else None, mask)
+            x, p = transformer(x, past[i] if past is not None else None, mask)
             present.append(p)
 
         x = self.ln_head(x)
