@@ -105,8 +105,8 @@ class Transformer(nn.Module):
         for i, transformer in enumerate(self.transformers):
             if use_grad_ckpt:
                 x = torch.utils.checkpoint.checkpoint(
-                    transformer,
-                    x, past[i] if past is not None else None, mask, False)
+                    lambda *inputs: transformer(*inputs, return_past=False),
+                    x, past[i] if past is not None else None, mask)
             else:
                 x, p = transformer(
                     x, past[i] if past is not None else None, mask)
