@@ -38,15 +38,7 @@ class TransformerLayer(nn.Module):
                 ) -> Tuple[torch.Tensor, Past]:
         # Layer normalizations are performed before the layers respectively.
         a = self.ln_attn(x)
-
-        if self.training:
-            def custom_forward(q, k, v, past, mask):
-                return self.attn(q, k, v, past, mask)[0]
-
-            a = torch.utils.checkpoint.checkpoint(
-                custom_forward, a, a, a, past, mask)
-        else:
-            a, past = self.attn(a, a, a, past, mask)
+        a, past = self.attn(a, a, a, past, mask)
 
         x = x + a
         x = x + self.ff(self.ln_ff(x))
@@ -91,7 +83,8 @@ class Transformer(nn.Module):
 
     def forward(self,
                 x: torch.Tensor,
-                past: Optional[List[Past]] = None
+                past: Optional[List[Past]] = None,
+                use_grad_ckpt: bool = False
                 ) -> Tuple[torch.Tensor, List[Past]]:
         offset = past[0][0].size(-2) if past is not None else 0
 
@@ -107,8 +100,14 @@ class Transformer(nn.Module):
         # Apply transformer layers sequentially.
         present = []
         for i, transformer in enumerate(self.transformers):
-            x, p = transformer(x, past[i] if past is not None else None, mask)
-            present.append(p)
+            if use_grad_ckpt:
+                x = torch.utils.checkpoint.checkpoint(
+                    lambda *inputs: transformer(*inputs)[0],
+                    x, past[i] if past is not None else None, mask)
+            else:
+                x, p = transformer(
+                    x, past[i] if past is not None else None, mask)
+                present.append(p)
 
         x = self.ln_head(x)
         x = self.token_embedding(x, transposed=True)
