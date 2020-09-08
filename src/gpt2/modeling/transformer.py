@@ -41,7 +41,7 @@ class TransformerLayer(nn.Module):
         a, past = self.attn(a, a, a, past, mask)
 
         x = self.ln_ff(x + a)
-        x = x + torch.utils.checkpoint.checkpoint(self.ff, x)
+        x = x + torch.utils.checkpoint.checkpoint_sequential(self.ff, 3, x)
 
         return x, past
 
