@@ -57,18 +57,18 @@ If you want to train GPT-2 with multiple GPUs, use `--gpus [number of gpus]` opt
 The detail of command-line usage is as follows:
 
     usage: gpt2 train [-h] --train_corpus TRAIN_CORPUS --eval_corpus EVAL_CORPUS
-                    --vocab_path VOCAB_PATH [--seq_len SEQ_LEN]
-                    [--layers LAYERS] [--heads HEADS] [--dims DIMS]
-                    [--rate RATE] [--dropout DROPOUT]
-                    [--batch_train BATCH_TRAIN] [--batch_eval BATCH_EVAL]
-                    [--base_lr BASE_LR] [--wd_rate WD_RATE]
-                    [--total_steps TOTAL_STEPS] [--eval_steps EVAL_STEPS]
-                    [--save_steps SAVE_STEPS]
-                    [--save_model_path SAVE_MODEL_PATH]
-                    [--save_checkpoint_path SAVE_CHECKPOINT_PATH]
-                    [--from_checkpoint FROM_CHECKPOINT]
-                    [--from_pretrained FROM_PRETRAINED] [--use_amp]
-                    [--gpus GPUS]
+                      --vocab_path VOCAB_PATH [--seq_len SEQ_LEN]
+                      [--layers LAYERS] [--heads HEADS] [--dims DIMS]
+                      [--rate RATE] [--dropout DROPOUT]
+                      [--batch_train BATCH_TRAIN] [--batch_eval BATCH_EVAL]
+                      [--base_lr BASE_LR] [--wd_rate WD_RATE]
+                      [--total_steps TOTAL_STEPS] [--eval_steps EVAL_STEPS]
+                      [--save_steps SAVE_STEPS]
+                      [--save_model_path SAVE_MODEL_PATH]
+                      [--save_checkpoint_path SAVE_CHECKPOINT_PATH]
+                      [--from_checkpoint FROM_CHECKPOINT]
+                      [--from_pretrained FROM_PRETRAINED] [--use_amp]
+                      [--use_grad_ckpt] [--gpus GPUS]
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -115,6 +115,7 @@ The detail of command-line usage is as follows:
 
     Extensions:
       --use_amp             use automatic mixed-precision in training
+      --use_grad_ckpt       use gradient checkpointing in transformer layers
       --gpus GPUS           number of gpu devices to use in training
 
 ### Generate sentences!
