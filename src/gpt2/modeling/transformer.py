@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.utils.checkpoint
-from gpt2.utils.fusing import LayerNorm\
+from gpt2.utils.fusing import LayerNorm
 from gpt2.modeling import (PadMasking, FutureMasking, AttentionLayer, Past,
                            PositionalEmbedding, TokenEmbedding,
                            PositionwiseFeedForward)
