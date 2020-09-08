@@ -2,12 +2,16 @@ import tqdm
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.cuda.amp as amp
 import torch.distributed as dist
 import torch.multiprocessing as mp
 from gpt2.data import Dataset
 from gpt2.training import TrainingSpec, TrainConfig, Recorder
 from typing import Dict, Optional
+
+try:
+    from apex import amp
+except ModuleNotFoundError:
+    pass
 
 import warnings
 warnings.filterwarnings(action='ignore')
@@ -53,14 +57,13 @@ class Trainer(object):
             del ckpt
             torch.cuda.empty_cache()
 
-        # Create an optimizer, learning rate scheduler and gradient scaler.
+        # Create an optimizer and learning rate scheduler.
         optimizer, scheduler = self.spec.create_optimizer(model.parameters())
         recorder = Recorder()
-        scaler = amp.GradScaler()
 
-        # if self.config.use_amp:
-        #     model, optimizer = amp.initialize(
-        #         model, optimizer, opt_level='O2', verbosity=0)
+        if self.config.use_amp:
+            model, optimizer = amp.initialize(
+                model, optimizer, opt_level='O2', verbosity=0)
 
         if self.config.distributed:
             model = nn.parallel.DistributedDataParallel(
@@ -77,10 +80,12 @@ class Trainer(object):
             model.load_state_dict(ckpt['model'])
             optimizer.load_state_dict(ckpt['optimizer'])
             scheduler.load_state_dict(ckpt['scheduler'])
-            scaler.load_state_dict(ckpt['scaler'])
 
             train_dataset.assign(ckpt['train_dataset'])
             eval_dataset.assign(ckpt['eval_dataset'])
+
+            if self.config.use_amp:
+                amp.load_state_dict(ckpt['amp'])
 
             # Because the checkpoint data allocates quite a lot of GPU
             # memories, we need to free the memories explicitly.
@@ -103,7 +108,7 @@ class Trainer(object):
         for step in training_iters:
             recorder.record(
                 self._train_step(rank, train_dataset, model, optimizer,
-                                 scheduler, scaler),
+                                 scheduler),
                 scope='train')
 
             if (step + 1) % self.config.eval_steps == 0:
@@ -122,9 +127,11 @@ class Trainer(object):
                         'model': model.state_dict(),
                         'optimizer': optimizer.state_dict(),
                         'scheduler': scheduler.state_dict(),
-                        'scaler': scaler.state_dict(),
                         'train_dataset': train_dataset.where(),
                         'eval_dataset': eval_dataset.where()}
+
+                if self.config.use_amp:
+                    ckpt['amp'] = amp.state_dict()
 
                 torch.save(ckpt, self.config.save_checkpoint_path)
 
@@ -150,25 +157,22 @@ class Trainer(object):
                     dataset: Dataset,
                     model: nn.Module,
                     optimizer: optim.Optimizer,
-                    scheduler: optim.lr_scheduler._LRScheduler,
-                    scaler: amp.GradScaler
+                    scheduler: optim.lr_scheduler._LRScheduler
                     ) -> Dict[str, float]:
         model.train()
         optimizer.zero_grad()
 
         data = self._fetch_from(dataset, rank, self.config.batch_train)
-
-        with amp.autocast(enabled=self.config.use_amp):
-            metrics = self.spec.train_objective(data, model)
+        metrics = self.spec.train_objective(data, model)
         loss = metrics['loss']
 
         if self.config.use_amp:
-            scaler.scale(loss).backward()
-            scaler.step(optimizer)
-            scaler.update()
+            with amp.scale_loss(loss, optimizer) as scaled_loss:
+                scaled_loss.backward()
         else:
             loss.backward()
-            optimizer.step()
+
+        optimizer.step()
         scheduler.step()
 
         return {k: self._to_value(v) for k, v in metrics.items()}
