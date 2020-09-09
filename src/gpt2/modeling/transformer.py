@@ -34,7 +34,8 @@ class TransformerLayer(nn.Module):
     def forward(self,
                 x: torch.Tensor,
                 past: Optional[Past] = None,
-                mask: Optional[torch.Tensor] = None
+                mask: Optional[torch.Tensor] = None,
+                return_past: bool = True
                 ) -> Tuple[torch.Tensor, Past]:
         # Layer normalizations are performed before the layers respectively.
         a = self.ln_attn(x)
@@ -43,7 +44,9 @@ class TransformerLayer(nn.Module):
         x = x + a
         x = x + self.ff(self.ln_ff(x))
 
-        return x, past
+        if return_past:
+            return x, past
+        return x
 
 
 class Transformer(nn.Module):
@@ -102,7 +105,7 @@ class Transformer(nn.Module):
         for i, transformer in enumerate(self.transformers):
             if use_grad_ckpt:
                 x = torch.utils.checkpoint.checkpoint(
-                    lambda *inputs: transformer(*inputs)[0],
+                    lambda *inputs: transformer(*inputs, False),
                     x, past[i] if past is not None else None, mask)
             else:
                 x, p = transformer(
