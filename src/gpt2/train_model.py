@@ -59,9 +59,7 @@ class GPT2TrainingSpec(TrainingSpec):
 
     def train_objective(self, data: Dict[str, torch.Tensor], model: nn.Module
                         ) -> Dict[str, torch.Tensor]:
-        logits, _ = model(data['input'],
-                          past=None,
-                          use_grad_ckpt=self.use_grad_ckpt)
+        logits = model(data['input'], use_grad_ckpt=self.use_grad_ckpt)
         loss = self.criterion(logits.transpose(1, 2), data['output'])
         return {'loss': loss}
 
