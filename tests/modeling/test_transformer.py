@@ -3,7 +3,7 @@ from gpt2.modeling import TransformerLayer, Transformer
 
 
 def test_transformer_layer_output_shape():
-    layer = TransformerLayer(heads=2, dims=16, rate=4)
+    layer = TransformerLayer(heads=2, dims=16, rate=4).eval()
 
     x, past = layer(torch.zeros((10, 16)))
     assert x.shape == (10, 16)
@@ -33,7 +33,7 @@ def test_transformer_layer_output_shape():
 
 def test_transformer_output_shape():
     model = Transformer(layers=2, pad_idx=0, words=80, seq_len=100, heads=2,
-                        dims=16, rate=4, bidirectional=False)
+                        dims=16, rate=4, bidirectional=False).eval()
 
     x, past = model(torch.randint(80, (10,)))
     assert x.shape == (10, 80)
@@ -58,7 +58,7 @@ def test_transformer_output_shape():
 
 def test_transformer_generating_sequence():
     model = Transformer(layers=2, pad_idx=0, words=80, seq_len=100, heads=2,
-                        dims=16, rate=4, bidirectional=False)
+                        dims=16, rate=4, bidirectional=False).eval()
 
     past = None
     for _ in range(10):
