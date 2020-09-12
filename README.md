@@ -42,14 +42,14 @@ After preparing datasets, you can train GPT-2 by using as follows:
     $ python -m gpt2 train --train_corpus           build/corpus.train.txt \
                            --eval_corpus            build/corpus.test.txt \
                            --vocab_path             build/vocab.txt \
-                           --save_checkpoint_path   ckpt.pth \
+                           --save_checkpoint_path   ckpt-gpt2.pth \
+                           --save_model_path        gpt2-pretrained.pth
                            --batch_train            128 \
                            --batch_eval             128 \
                            --seq_len                64 \
-                           --iterations             1000000 \
-                           --warmup_iters           10000 \
-                           --eval_iters             500 \
-                           --save_iters             5000
+                           --total_steps            1000000 \
+                           --eval_steps             500 \
+                           --save_steps             5000
 
 To resume training from last checkpoint file, use `--from_checkpoint [last checkpoint file]` option.
 If you want to train GPT-2 with multiple GPUs, use `--gpus [number of gpus]` option.
