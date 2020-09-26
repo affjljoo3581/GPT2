@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.utils.checkpoint
+from functools import partial
 from gpt2.utils.fusing import LayerNorm
 from gpt2.modeling import (PadMasking, FutureMasking, AttentionLayer, Past,
                            PositionalEmbedding, TokenEmbedding,
@@ -101,13 +102,14 @@ class Transformer(nn.Module):
         present = []
         for i, transformer in enumerate(self.transformers):
             if self.training and use_grad_ckpt:
-                x = torch.utils.checkpoint.checkpoint(
-                    transformer,
-                    x, past[i] if past is not None else None, mask)
-            else:
-                x, p = transformer(
-                    x, past[i] if past is not None else None, mask)
-                present.append(p)
+                transformer = partial(torch.utils.checkpoint.checkpoint,
+                                      transformer)
+
+            x = transformer(x, past[i] if past is not None else None, mask)
+
+            if not self.training:
+                present.append(x[1])
+                x = x[0]
 
         x = self.ln_head(x)
         x = self.token_embedding(x, transposed=True)
