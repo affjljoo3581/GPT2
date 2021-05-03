@@ -180,5 +180,7 @@ If you cannot install the library or your GPU device does not support fast mixed
 
 You can play trained GPT2 model in Google Colab! The above notebook contains text generation and metrics evaluation. You need to upload the trained model, vocabulary file and evaluation dataset to [Google Cloud Storage](https://cloud.google.com/storage).
 
+For the people who are interested in korean-version of GPT2, we rewrite the above notebook to provide the case of `gpt2-ko-302M` model especially, which is trained with about **5.04B** tokens from korean documents. You can play demo [in this notebook](https://colab.research.google.com/github/affjljoo3581/GPT2/blob/master/korean_gpt2_302M_demo.ipynb).
+
 ## License
 This project is [Apache-2.0 Licensed](./LICENSE).
