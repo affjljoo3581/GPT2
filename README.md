@@ -184,3 +184,7 @@ For the people who are interested in korean-version of GPT2, we rewrite the abov
 
 ## License
 This project is [Apache-2.0 Licensed](./LICENSE).
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=affjljoo3581/GPT2&type=Date)](https://star-history.com/#affjljoo3581/GPT2&Date)
